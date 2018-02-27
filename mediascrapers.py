@@ -5,6 +5,8 @@
 # Licensed under the MIT License - https://opensource.org/licenses/MIT
 
 import json
+import os
+import sys
 import time
 import re
 from abc import ABCMeta, abstractmethod
@@ -20,16 +22,22 @@ class Scraper(metaclass=ABCMeta):
 
     def __init__(self, scroll_pause = 0.5, mode='normal', debug=False):
         self._scroll_pause_time = scroll_pause
+        self._login_pause_time = 5.0
         self._mode = mode
         self._debug = debug
 
         if self._mode == 'verbose':
             print('Starting PhantomJS web driver...')
-        # self._driver = webdriver.PhantomJS()
         self._driver = seleniumdriver.get('PhantomJS')
 
+        # if self._mode == 'verbose':
+        #     print('Starting Chrome web driver...')
+        # self._driver = seleniumdriver.get('Chrome')
+
+        self._credentials_file = 'credentials.json'
+
     def connect(self, url):
-        if self._mode == 'verbose':
+        if self._debug:
             print('Connecting to "{}"...'.format(url))
         self._driver.get(url)
 
@@ -44,6 +52,17 @@ class Scraper(metaclass=ABCMeta):
             f.write(self.source().encode('utf-8'))
         print('Saved web page to {}.'.format(file))
 
+    def load_credentials(self):
+        assert os.path.exists(self._credentials_file), 'Error: Credentials does not exist.'
+
+        with open(self._credentials_file, 'r') as f:
+            credentials = json.loads(f.read())
+
+        if self._mode == 'verbose':
+            print('Logging in as "{}"...'.format(credentials['username']))
+
+        return credentials
+
     def find_element_by_class_name(self, class_name):
         try:
             element = self._driver.find_element_by_class_name(class_name)
@@ -51,20 +70,30 @@ class Scraper(metaclass=ABCMeta):
         except:
             return None
 
-    def scrollToBottom(self, fn=None):
+    def scrollToBottom(self, fn=None, times=-1):
+        if times < 0: times = sys.maxsize
         last_height, new_height = self._driver.execute_script("return document.body.scrollHeight"), 0
-        while new_height != last_height or fn is not None and fn():
+        counter = 0
+        while (new_height != last_height or fn is not None and fn()) and counter < times:
             self._driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
             time.sleep(self._scroll_pause_time)
             last_height = new_height
             new_height = self._driver.execute_script("return document.body.scrollHeight")
+            counter += 1
+        return not (new_height != last_height or fn is not None and fn())
 
     @abstractmethod
-    def scrape(self, path='.'):
-        pass
+    def scrape(self):
+        return None
+
+    def download(self, tasks, path='.', force=False):
+        if self._mode != 'silent':
+            print('Downloading...')
+        for url, rename in tqdm(tasks):
+            download(url, path=path, rename=rename, replace=force)
 
     @abstractmethod
-    def login(self, username, password):
+    def login(self):
         pass
 
 class MediaScraper(Scraper):
@@ -76,7 +105,7 @@ class MediaScraper(Scraper):
         # self.abs_url_regex = '/^([a-z0-9]*:|.{0})\/\/.*$/gmi'
         # self.rel_url_regex = '/^[^\/]+\/[^\/].*$|^\/[^\/].*$/gmi'
 
-    def scrape(self, path='.'):
+    def scrape(self):
         self.scrollToBottom()
 
         if self._debug:
@@ -87,7 +116,7 @@ class MediaScraper(Scraper):
         # Parse links, images, and videos successively by BeautifulSoup parser.
 
         media_urls = [] 
-        soup = BeautifulSoup(source, "lxml")
+        soup = BeautifulSoup(source, 'lxml')
         for link in soup.find_all('a', href=True):
             if is_media(link['href']):
                 media_urls.append(link['href'])
@@ -103,16 +132,15 @@ class MediaScraper(Scraper):
         if self._debug:
             print(media_urls)
 
-        media_urls = [complete_url(media_url, self._driver.current_url) for media_url in media_urls]
+        tasks = [(complete_url(media_url, self._driver.current_url), None) for media_url in media_urls]
 
         if self._debug:
-            print(media_urls)
+            print(tasks)
 
         if self._mode != 'silent':
             print('{} media are found.'.format(len(media_urls)))
 
-        for media_url in tqdm(media_urls):
-            download(media_url, path=path)
+        return tasks
 
 
         # # Parse links, images, and videos successively by native regex matching.
@@ -132,8 +160,9 @@ class MediaScraper(Scraper):
         # for url in urls:
         #     print(url)
 
-    def login(self, username, password):
+    def login(self):
         pass
+
 
 class InstagramScraper(Scraper):
 
@@ -145,10 +174,12 @@ class InstagramScraper(Scraper):
     #    (4) dot        (.) 
     # 2. Shortcode: 
     #    a string of 11 characters 
+    # 3. In a page, there are at most 30 rows of posts.
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.base_url = 'https://www.instagram.com'
+        self.login_url = 'https://www.instagram.com/accounts/login/'
         self.post_regex = '/p/[ -~]{11}/'
 
     def sharedData(self):
@@ -157,34 +188,39 @@ class InstagramScraper(Scraper):
     def username(self, username):
         self.connect('{}/{}/'.format(self.base_url, username))
 
-    def scrape(self, path='.'):
-        self.scrollToBottom(fn=lambda: self.find_element_by_class_name('_o5uzb'))
-
-        source = self.source()
-        codes = re.findall(self.post_regex, source)
+    def scrape(self):
+        if self._mode != 'silent':
+            print('Crawling...')
+        done = False
+        codes = re.findall(self.post_regex, self.source())
+        while not done:
+            done = self.scrollToBottom(fn=lambda: self.find_element_by_class_name('_o5uzb'), times=3)
+            codes += re.findall(self.post_regex, self.source())
+        codes = list(set(codes))
         codes = [code[3:-1] for code in codes]
+
+        if self._mode != 'silent':
+            print('{} posts are found.'.format(len(codes)))
 
         if self._debug:
             self.save('test.html')
             with open('shortcodes.txt', 'w') as f:
                 f.write(json.dumps(codes))
 
+        if self._mode != 'silent':
+            print('Scraping...')
+
         tasks = []
-        for code in codes:
+        for code in tqdm(codes):
             self.connect('{}/p/{}/'.format(self.base_url, code))
             data = self.sharedData()
             node = data['entry_data']['PostPage'][0]['graphql']['shortcode_media']
             tasks += parse_node(node, node['owner']['username'])
 
         if self._mode != 'silent':
-            print('{} posts are found.'.format(len(codes)))
             print('{} media are found.'.format(len(tasks)))
-            
-        for url, rename in tqdm(tasks):
-            download(url, path=path, rename=rename)
 
-    def can_scroll(self):
-        self._driver
+        return tasks
 
     def scrapeSharedData(self):
         sharedData = self.sharedData()
@@ -218,5 +254,89 @@ class InstagramScraper(Scraper):
         with open('ids_shared_data.txt', 'w') as f:
             f.write(json.dumps(target))
 
-    def login(self, username, password):
-        pass
+    def login(self):
+        credentials = self.load_credentials()
+
+        self.connect(self.login_url)
+        time.sleep(self._login_pause_time)
+
+        username, password = self._driver.find_elements_by_tag_name('input')
+        button = self._driver.find_element_by_tag_name('button')
+
+        username.send_keys(credentials['username'])
+        password.send_keys(credentials['password'])
+        button.click()
+        time.sleep(self._login_pause_time)
+
+
+class TwitterScraper(Scraper):
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.base_url = 'https://twitter.com'
+        self.login_url = 'https://twitter.com/login'
+        # self.post_regex = '/p/[ -~]{11}/'
+
+    def username(self, username):
+        self.connect('{}/{}'.format(self.base_url, username))
+
+    def scrape(self):
+        if self._mode != 'silent':
+            print('Crawling...')
+
+        done = self.scrollToBottom()
+
+        source = self.source()
+        soup = BeautifulSoup(source, 'lxml')
+
+        # title = soup.find('title')
+        # name = title.get_text().replace('Media Tweets by ', '').replace(' | Twitter', '')
+
+        # avatar_url = soup.find("a", { "class" : "ProfileCardMini-avatar" }).get('data-resolved-url-large')
+        # background_url = soup.find("div", { "class" : "ProfileCanopy-headerBg" }).find('img').get('src')
+
+        tasks = []
+        for div in soup.find_all('div', { "class" : "AdaptiveMedia-photoContainer" }):
+            url = div.get('data-image-url')
+            tasks.append((url+':large', get_filename(url)))
+
+        return tasks
+
+        if self._mode != 'silent':
+            print('{} posts are found.'.format(len(codes)))
+
+        if self._debug:
+            self.save('test.html')
+            with open('shortcodes.txt', 'w') as f:
+                f.write(json.dumps(codes))
+
+        if self._mode != 'silent':
+            print('Scraping...')
+
+        tasks = []
+        for code in tqdm(codes):
+            self.connect('{}/p/{}/'.format(self.base_url, code))
+            data = self.sharedData()
+            node = data['entry_data']['PostPage'][0]['graphql']['shortcode_media']
+            tasks += parse_node(node, node['owner']['username'])
+
+        if self._mode != 'silent':
+            print('{} media are found.'.format(len(tasks)))
+
+        return tasks
+
+    def login(self):
+        credentials = self.load_credentials()
+
+        self.connect(self.login_url)
+        time.sleep(self._login_pause_time)
+
+        username = self._driver.find_element_by_name('session[username_or_email]')
+        password = self._driver.find_element_by_name('session[password]')
+        buttons = self._driver.find_elements_by_tag_name('button')
+        button = [b for b in buttons if b.text != ''][0]
+
+        username.send_keys(credentials['username'])
+        password.send_keys(credentials['password'])
+        button.click()
+        time.sleep(self._login_pause_time)

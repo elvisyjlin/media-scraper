@@ -1,6 +1,7 @@
 __pycache__/
 download/
 webdriver/
+credentials.json
 *.log
 test.py
 example_sites.txt

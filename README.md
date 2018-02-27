@@ -41,13 +41,13 @@ The needed web driver will be downloaded automatically when it is used.
 ## To Scrape
 
 ```bash
-python3 -m mediascraper.general [WEB PAGE]
+python3 -m mediascraper.general [WEB PAGE 1] [WEB PAGE 2] ...
 ```
 
 The media will be stored in the folder `download/general`.
 
 ```bash
-python3 -m mediascraper.instagram [USER ID]
+python3 -m mediascraper.instagram [USER ID 1] [USER ID 2] ...
 ```
 
 The media will be stored in the folder `download/instagram`.
@@ -83,6 +83,6 @@ scraper.scrape(path=SAVE_PATH)
 
 Parameter | Description | Default Value
 --- | --- | ---
-scroll_pause | the pause interval when scrolling| `0.5`
+scroll_pause | the pause interval when scrolling| `0.5` (seconds)
 mode | `'silent'`, `normal'` or `'verbose'` | `'normal'`
-debug | print debugging message if `True` | `False`
+debug | prints debugging messages if `True` | `False`

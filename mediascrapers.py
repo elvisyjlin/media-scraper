@@ -34,8 +34,6 @@ class Scraper(metaclass=ABCMeta):
         #     print('Starting Chrome web driver...')
         # self._driver = seleniumdriver.get('Chrome')
 
-        self._credentials_file = 'credentials.json'
-
     def connect(self, url):
         if self._debug:
             print('Connecting to "{}"...'.format(url))
@@ -52,10 +50,10 @@ class Scraper(metaclass=ABCMeta):
             f.write(self.source().encode('utf-8'))
         print('Saved web page to {}.'.format(file))
 
-    def load_credentials(self):
-        assert os.path.exists(self._credentials_file), 'Error: Credentials does not exist.'
+    def load_credentials(self, credentials_file):
+        assert os.path.exists(credentials_file), 'Error: Credentials file "{}" does not exist.'.format(credentials_file)
 
-        with open(self._credentials_file, 'r') as f:
+        with open(credentials_file, 'r') as f:
             credentials = json.loads(f.read())
 
         if self._mode == 'verbose':
@@ -160,7 +158,7 @@ class MediaScraper(Scraper):
         # for url in urls:
         #     print(url)
 
-    def login(self):
+    def login(self, credentials_file):
         pass
 
 
@@ -254,8 +252,8 @@ class InstagramScraper(Scraper):
         with open('ids_shared_data.txt', 'w') as f:
             f.write(json.dumps(target))
 
-    def login(self):
-        credentials = self.load_credentials()
+    def login(self, credentials_file):
+        credentials = self.load_credentials(credentials_file)
 
         self.connect(self.login_url)
         time.sleep(self._login_pause_time)
@@ -278,7 +276,7 @@ class TwitterScraper(Scraper):
         # self.post_regex = '/p/[ -~]{11}/'
 
     def username(self, username):
-        self.connect('{}/{}'.format(self.base_url, username))
+        self.connect('{}/{}/media'.format(self.base_url, username))
 
     def scrape(self):
         if self._mode != 'silent':
@@ -300,33 +298,13 @@ class TwitterScraper(Scraper):
             url = div.get('data-image-url')
             tasks.append((url+':large', get_filename(url)))
 
-        return tasks
-
-        if self._mode != 'silent':
-            print('{} posts are found.'.format(len(codes)))
-
-        if self._debug:
-            self.save('test.html')
-            with open('shortcodes.txt', 'w') as f:
-                f.write(json.dumps(codes))
-
-        if self._mode != 'silent':
-            print('Scraping...')
-
-        tasks = []
-        for code in tqdm(codes):
-            self.connect('{}/p/{}/'.format(self.base_url, code))
-            data = self.sharedData()
-            node = data['entry_data']['PostPage'][0]['graphql']['shortcode_media']
-            tasks += parse_node(node, node['owner']['username'])
-
         if self._mode != 'silent':
             print('{} media are found.'.format(len(tasks)))
 
         return tasks
 
-    def login(self):
-        credentials = self.load_credentials()
+    def login(self, credentials_file):
+        credentials = self.load_credentials(credentials_file)
 
         self.connect(self.login_url)
         time.sleep(self._login_pause_time)

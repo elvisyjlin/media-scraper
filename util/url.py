@@ -32,7 +32,7 @@ def download(url, path='.', rename=None, replace=True):
     if rename is None:
         filename = urllib.parse.unquote(get_filename(url))
     else:
-        filename = rename_file(url, rename)
+        filename = rename_file(get_filename(url), rename)
 
     file = os.path.join(path, filename)
 

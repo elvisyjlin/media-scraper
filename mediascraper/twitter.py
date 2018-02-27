@@ -9,10 +9,12 @@ import os
 import sys
 
 if __name__ == '__main__':
-    scraper = mediascrapers.InstagramScraper(scroll_pause = 1.0, mode='normal', debug=False)
+    scraper = mediascrapers.TwitterScraper(scroll_pause = 1.0, mode='normal', debug=False)
     if os.path.exists('credentials.json'):
         scraper.login('credentials.json')
     for username in sys.argv[1:]:
+        if username[0] == '@':
+            username = username[1:]
         scraper.username(username)
         tasks = scraper.scrape()
-        scraper.download(tasks=tasks, path='download/instagram')
+        scraper.download(tasks=tasks, path='download/twitter')

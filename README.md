@@ -12,8 +12,8 @@ in all link `<a/>`, image `<img/>` and video `<video/>` elements of a web page.
 
 ##### SNS-specific
 
-Currently there is the **Instagram** scraper, 
-which crawls all posts of a user and downloads media in each post. 
+Currently there are **Instagram** scraper and **Twitter** scraper, 
+which crawls all posts of a given user and downloads media in each post. 
 
 
 ## Installation
@@ -52,6 +52,18 @@ python3 -m mediascraper.instagram [USER ID 1] [USER ID 2] ...
 
 The media will be stored in the folder `download/instagram`.
 
+```bash
+python3 -m mediascraper.twitter [USER ID 1] [USER ID 2] ...
+```
+
+The media will be stored in the folder `download/twitter`.
+
+
+### Login with Credentials
+
+If you want to scrape a user's media with your account, 
+just rename `credentials.json.example` to `credentials.json` and fill in your username and password. 
+
 
 ## To Import
 
@@ -69,11 +81,12 @@ scraper.scrape(path=SAVE_PATH)
 ```
 
 
-#### Instagram
+#### Social Network Services
 
 ```python
 import mediascraper
 scraper = mediascrapers.InstagramScraper()
+# scraper = mediascrapers.TwitterScraper()
 scraper.username(USERNAME)
 scraper.scrape(path=SAVE_PATH)
 ```

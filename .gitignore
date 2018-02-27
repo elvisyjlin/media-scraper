@@ -1,0 +1,6 @@
+__pycache__/
+download/
+webdriver/
+*.log
+test.py
+example_sites.txt

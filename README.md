@@ -7,13 +7,13 @@ It supports general-purpose scraping as well as SNS-specific scraping.
 ##### General-purpose Scraping
 
 The general media scraper scrapes and downloads all photos and videos 
-in all link `<a/>`, image `<img/>` and video `<video/>` elements of a web page. 
+in all links `<a/>`, images `<img/>` and videos `<video/>` of a web page. 
 
 
 ##### SNS-specific
 
 Currently there are **Instagram** scraper and **Twitter** scraper, 
-which crawls all posts of a given user and downloads media in each post. 
+which crawl all posts of a given user and download media in a proper way for each SNS. 
 
 
 ## Installation

@@ -1,7 +1,10 @@
 __pycache__/
 download/
 webdriver/
+build/
+dist/
 credentials.json
 *.log
-test.py
+test.*
 example_sites.txt
+*.spec

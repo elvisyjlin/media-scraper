@@ -67,6 +67,8 @@ just rename `credentials.json.example` to `credentials.json` and fill in your us
 
 ## To Import
 
+It is easy to import `media-scraper` into your scripts and make use of it.
+
 
 ### Media Scraper
 
@@ -76,7 +78,7 @@ just rename `credentials.json.example` to `credentials.json` and fill in your us
 ```python
 import mediascraper
 scraper = mediascrapers.MediaScraper()
-scraper.connect(WEB_PAGE)
+scraper.connect(URL)
 scraper.scrape(path=SAVE_PATH)
 ```
 
@@ -99,3 +101,12 @@ Parameter | Description | Default Value
 scroll_pause | the pause interval when scrolling| `0.5` (seconds)
 mode | `'silent'`, `normal'` or `'verbose'` | `'normal'`
 debug | prints debugging messages if `True` | `False`
+
+
+### Connect Methods of Scraper
+
+Scraper | Methods
+--- | ---
+MediaScraper | `connect(URL)`
+InstagramScraper | `username(USERNAME)`
+TwitterScraper | `username(USERNAME)`

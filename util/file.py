@@ -6,8 +6,11 @@
 
 import os
 
+def get_basename(filename)
+    return filename.rsplit('.', 1)[0]
+
 def get_extension(filename):
-    return filename.rsplit('.')[-1]
+    return filename.rsplit('.', 1)[1]
 
 def rename_file(filename, name):
     return '{}.{}'.format(name, get_extension(filename))

@@ -7,13 +7,16 @@
 def largest_image_url(resources):
     return max(resources, key=lambda x: x['config_height']*x['config_width'])['src']
 
+def node_name(node):
+    return '{},{}'.format(node['id'], node['shortcode'])
+
 def parse_node(node, name=''):
     tasks = []
 
     if name == '':
-        name = node['shortcode']
+        name = node_name(node)
     else:
-        name += ' ' + node['shortcode']
+        name += ' ' + node_name(node)
 
     display_resources = node['display_resources']
     # find the highest resolution image

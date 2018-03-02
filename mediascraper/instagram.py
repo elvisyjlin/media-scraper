@@ -13,6 +13,5 @@ if __name__ == '__main__':
     if os.path.exists('credentials.json'):
         scraper.login('credentials.json')
     for username in sys.argv[1:]:
-        scraper.username(username)
-        tasks = scraper.scrape()
+        tasks = scraper.scrape(username)
         scraper.download(tasks=tasks, path='download/instagram')

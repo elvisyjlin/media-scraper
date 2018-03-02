@@ -12,12 +12,14 @@ def input_username():
     return input('Enter a username (ENTER to exit): ').strip()
 
 if __name__ == '__main__':
-    print('Starting InstagramScraper...')
-    scraper = mediascrapers.InstagramScraper(scroll_pause = 1.0, mode='normal', debug=False)
+    print('Starting TwitterScraper...')
+    scraper = mediascrapers.TwitterScraper(scroll_pause = 1.0, mode='normal', debug=False)
     if os.path.exists('credentials.json'):
         scraper.login('credentials.json')
     username = input_username()
     while username != '':
+        if username[0] == '@':
+            username = username[1:]
         tasks = scraper.scrape(username)
-        scraper.download(tasks=tasks, path='download/instagram')
+        scraper.download(tasks=tasks, path='download/twitter')
         username = input_username()

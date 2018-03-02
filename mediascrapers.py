@@ -20,21 +20,25 @@ from util.url import get_filename, complete_url, download, is_media
 
 class Scraper(metaclass=ABCMeta):
 
-    def __init__(self, scroll_pause = 0.5, mode='normal', debug=False):
+    def __init__(self, driver='phantomjs', scroll_pause=1.0, next_page_pause=1.0, mode='normal', debug=False):
         self._scroll_pause_time = scroll_pause
+        self._next_page_pause_time = next_page_pause
         self._login_pause_time = 5.0
         self._mode = mode
         self._debug = debug
 
-        if self._mode == 'verbose':
-            print('Starting PhantomJS web driver...')
-        self._driver = seleniumdriver.get('PhantomJS')
+        if driver == 'phantomjs':
+            if self._mode != 'silent':
+                print('Starting PhantomJS web driver...')
+            self._driver = seleniumdriver.get('PhantomJS')
+        elif driver == 'chrome':
+            if self._mode == 'verbose':
+                print('Starting Chrome web driver...')
+            self._driver = seleniumdriver.get('Chrome')
+        else:
+            raise Exception('Driver not found "{}".'.format(driver))
 
-        # if self._mode == 'verbose':
-        #     print('Starting Chrome web driver...')
-        # self._driver = seleniumdriver.get('Chrome')
-
-    def connect(self, url):
+    def _connect(self, url):
         if self._debug:
             print('Connecting to "{}"...'.format(url))
         self._driver.get(url)
@@ -103,7 +107,8 @@ class MediaScraper(Scraper):
         # self.abs_url_regex = '/^([a-z0-9]*:|.{0})\/\/.*$/gmi'
         # self.rel_url_regex = '/^[^\/]+\/[^\/].*$|^\/[^\/].*$/gmi'
 
-    def scrape(self):
+    def scrape(self, url):
+        self._connect(url)
         self.scrollToBottom()
 
         if self._debug:
@@ -171,28 +176,67 @@ class InstagramScraper(Scraper):
     #    (3) underline  (_) 
     #    (4) dot        (.) 
     # 2. Shortcode: 
-    #    a string of 11 characters 
+    #    not necessarily is a string of 11 characters 
+    #    maybe a string of 38 (on private account)
     # 3. In a page, there are at most 30 rows of posts.
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.base_url = 'https://www.instagram.com'
         self.login_url = 'https://www.instagram.com/accounts/login/'
-        self.post_regex = '/p/[ -~]{11}/'
+        self.json_data_url = 'https://www.instagram.com/{}/?__a=1'
+        self.json_data_url_with_max_id = 'https://www.instagram.com/{}/?__a=1&max_id={}'
+        self.post_regex = '\/p\/[^\/]+\/'
+
+    def getJsonData(self, target, max_id=None):
+        if max_id is None:
+            self._connect(self.json_data_url.format(target))
+        else:
+            self._connect(self.json_data_url_with_max_id.format(target, max_id))
+        content = self._driver.find_element_by_tag_name('pre').text
+        data = json.loads(content)
+        return data
 
     def sharedData(self):
         return self._driver.execute_script("return window._sharedData")
 
-    def username(self, username):
-        self.connect('{}/{}/'.format(self.base_url, username))
+    def scrape(self, username):
+        if self._mode != 'silent':
+            print('Crawling...')
 
-    def scrape(self):
+        data = self.getJsonData(username)
+
+        user = data['user']
+        media = user['media']
+        nodes = media['nodes']
+
+        tasks = []
+        num_post = 0
+        while len(nodes) > 0:
+            num_post += len(nodes)
+            for node in nodes:
+                post = self.getJsonData('p/'+node['code'])
+                tasks += parse_node(post['graphql']['shortcode_media'], username)
+            data = self.getJsonData(username, nodes[-1]['id'])
+            nodes = data['user']['media']['nodes']
+
+        if self._mode != 'silent':
+            print('{} posts are found.'.format(num_post))
+
+        if self._mode != 'silent':
+            print('{} media are found.'.format(len(tasks)))
+
+        return tasks
+
+    def scrapePage(self, username):
+        self._connect('{}/{}/'.format(self.base_url, username))
+
         if self._mode != 'silent':
             print('Crawling...')
         done = False
         codes = re.findall(self.post_regex, self.source())
         while not done:
-            done = self.scrollToBottom(fn=lambda: self.find_element_by_class_name('_o5uzb'), times=3)
+            done = self.scrollToBottom(fn=lambda: self.find_element_by_class_name('_o5uzb'), times=2)
             codes += re.findall(self.post_regex, self.source())
         codes = list(set(codes))
         codes = [code[3:-1] for code in codes]
@@ -210,7 +254,7 @@ class InstagramScraper(Scraper):
 
         tasks = []
         for code in tqdm(codes):
-            self.connect('{}/p/{}/'.format(self.base_url, code))
+            self._connect('{}/p/{}/'.format(self.base_url, code))
             data = self.sharedData()
             node = data['entry_data']['PostPage'][0]['graphql']['shortcode_media']
             tasks += parse_node(node, node['owner']['username'])
@@ -255,7 +299,10 @@ class InstagramScraper(Scraper):
     def login(self, credentials_file):
         credentials = self.load_credentials(credentials_file)
 
-        self.connect(self.login_url)
+        if self._mode != 'silent':
+            print('Logging in as "{}"...'.format(credentials['username']))
+
+        self._connect(self.login_url)
         time.sleep(self._login_pause_time)
 
         username, password = self._driver.find_elements_by_tag_name('input')
@@ -275,10 +322,64 @@ class TwitterScraper(Scraper):
         self.login_url = 'https://twitter.com/login'
         # self.post_regex = '/p/[ -~]{11}/'
 
-    def username(self, username):
-        self.connect('{}/{}/media'.format(self.base_url, username))
+    def scrape(self, username):
+        self._connect('{}/{}/media'.format(self.base_url, username))
 
-    def scrape(self):
+        if self._mode != 'silent':
+            print('Crawling...')
+
+        done = self.scrollToBottom()
+
+        source = self.source()
+        soup = BeautifulSoup(source, 'lxml')
+
+        # title = soup.find('title')
+        # name = title.get_text().replace('Media Tweets by ', '').replace(' | Twitter', '')
+
+        # avatar_url = soup.find("a", { "class" : "ProfileCardMini-avatar" }).get('data-resolved-url-large')
+        # background_url = soup.find("div", { "class" : "ProfileCanopy-headerBg" }).find('img').get('src')
+
+        tasks = []
+        for div in soup.find_all('div', { "class" : "AdaptiveMedia-photoContainer" }):
+            url = div.get('data-image-url')
+            tasks.append((url+':large', username + ' ' + get_basename(get_filename(url))))
+
+        if self._mode != 'silent':
+            print('{} media are found.'.format(len(tasks)))
+
+        return tasks
+
+    def login(self, credentials_file):
+        credentials = self.load_credentials(credentials_file)
+
+        if self._mode != 'silent':
+            print('Logging in as "{}"...'.format(credentials['username']))
+
+        self._connect(self.login_url)
+        time.sleep(self._login_pause_time)
+
+        username = self._driver.find_element_by_name('session[username_or_email]')
+        password = self._driver.find_element_by_name('session[password]')
+        buttons = self._driver.find_elements_by_tag_name('button')
+        button = [b for b in buttons if b.text != ''][0]
+
+        username.send_keys(credentials['username'])
+        password.send_keys(credentials['password'])
+        button.click()
+        time.sleep(self._login_pause_time)
+
+
+class FacebookScraper(Scraper):
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.base_url = 'https://www.facebook.com'
+        self.login_url = 'https://www.facebook.com/login'
+        # self.post_regex = '/p/[ -~]{11}/'
+
+    def scrape(self, username):
+        self._connect('{}/{}/media'.format(self.base_url, username))
+
         if self._mode != 'silent':
             print('Crawling...')
 
@@ -306,13 +407,91 @@ class TwitterScraper(Scraper):
     def login(self, credentials_file):
         credentials = self.load_credentials(credentials_file)
 
-        self.connect(self.login_url)
+        if self._mode != 'silent':
+            print('Logging in as "{}"...'.format(credentials['email']))
+
+        self._connect(self.login_url)
         time.sleep(self._login_pause_time)
 
-        username = self._driver.find_element_by_name('session[username_or_email]')
-        password = self._driver.find_element_by_name('session[password]')
-        buttons = self._driver.find_elements_by_tag_name('button')
-        button = [b for b in buttons if b.text != ''][0]
+        email = self._driver.find_element_by_tag_name('email')
+        password = self._driver.find_element_by_tag_name('pass')
+        buttons = self._driver.find_element_by_tag_name('login')
+
+        username.send_keys(credentials['email'])
+        password.send_keys(credentials['password'])
+        button.click()
+        time.sleep(self._login_pause_time)
+
+
+class pixivScraper(Scraper):
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.base_url = 'https://www.pixiv.net'
+        self.post_url = 'https://www.pixiv.net/member_illust.php?id='
+        self.login_url = 'https://accounts.pixiv.net/login'
+        # self.post_regex = '/p/[ -~]{11}/'
+
+    def scrape(self, id, content_type='all'):
+        self._connect(self.post_url + id)
+        self.id = id
+        self.type = content_type
+
+        if self._mode != 'silent':
+            print('Crawling...')
+
+        # TODO
+
+        # get page num
+        pager_container = self._driver.get_element_by_class_name('page-list')
+        last_pager = pager_container.get_element_by_tag_name('li')[-1]
+        num_page = int(last_pager.get_element_by_tag_name('a').text)
+        print('# of page: {}'.format(num_page))
+
+        # crawl each page
+        for p in range(1, num_page+1):
+            url = 'https://www.pixiv.net/member_illust.php?id={}&type={}&p={}'.format(self.id, self.type, p)
+            self._driver._connect(url)
+            time.sleep(self._next_page_pause_time)
+            print(url)
+        # scrape each post
+
+        return
+
+        done = self.scrollToBottom()
+
+        source = self.source()
+        soup = BeautifulSoup(source, 'lxml')
+
+        # title = soup.find('title')
+        # name = title.get_text().replace('Media Tweets by ', '').replace(' | Twitter', '')
+
+        # avatar_url = soup.find("a", { "class" : "ProfileCardMini-avatar" }).get('data-resolved-url-large')
+        # background_url = soup.find("div", { "class" : "ProfileCanopy-headerBg" }).find('img').get('src')
+
+        tasks = []
+        for div in soup.find_all('div', { "class" : "AdaptiveMedia-photoContainer" }):
+            url = div.get('data-image-url')
+            tasks.append((url+':large', get_filename(url)))
+
+        if self._mode != 'silent':
+            print('{} media are found.'.format(len(tasks)))
+
+        return tasks
+
+    def login(self, credentials_file):
+        credentials = self.load_credentials(credentials_file)
+
+        if self._mode != 'silent':
+            print('Logging in as "{}"...'.format(credentials['username']))
+
+        self._connect(self.login_url)
+        time.sleep(self._login_pause_time)
+
+        container = self._driver.find_element_by_id('container-login')
+
+        username, password = container.find_elements_by_tag_name('input')
+        buttons = container.find_element_by_tag_name('button')
 
         username.send_keys(credentials['username'])
         password.send_keys(credentials['password'])

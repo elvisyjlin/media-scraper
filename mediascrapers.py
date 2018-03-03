@@ -26,6 +26,7 @@ class Scraper(metaclass=ABCMeta):
         self._login_pause_time = 5.0
         self._mode = mode
         self._debug = debug
+        self._name = 'scraper'
 
         if driver == 'phantomjs':
             if self._mode != 'silent':
@@ -60,9 +61,12 @@ class Scraper(metaclass=ABCMeta):
         with open(credentials_file, 'r') as f:
             credentials = json.loads(f.read())
 
-        if self._mode == 'verbose':
-            print('Logging in as "{}"...'.format(credentials['username']))
+        assert self._name in credentials, 'Error: "{}" does not support credentials.'.format(self._name)
 
+        credentials = credentials[self._name]
+        if self._mode == 'verbose':
+            user = credentials.keys().remove('password')
+            print('Logging in as "{}"...'.format(credentials[user]))
         return credentials
 
     def find_element_by_class_name(self, class_name):
@@ -102,6 +106,7 @@ class MediaScraper(Scraper):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._name = 'general'
         # self.abs_url_regex = '([a-z0-9]*:|.{0})\/\/[^"\s]+'
         # self.rel_url_regex = '\"[^\/]+\/[^\/].*$|^\/[^\/].*\"'
         # self.abs_url_regex = '/^([a-z0-9]*:|.{0})\/\/.*$/gmi'
@@ -182,6 +187,8 @@ class InstagramScraper(Scraper):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._name = 'instagram'
+
         self.base_url = 'https://www.instagram.com'
         self.login_url = 'https://www.instagram.com/accounts/login/'
         self.json_data_url = 'https://www.instagram.com/{}/?__a=1'
@@ -318,6 +325,8 @@ class TwitterScraper(Scraper):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._name = 'twitter'
+
         self.base_url = 'https://twitter.com'
         self.login_url = 'https://twitter.com/login'
         # self.post_regex = '/p/[ -~]{11}/'
@@ -373,6 +382,8 @@ class FacebookScraper(Scraper):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._name = 'facebook'
+
         self.base_url = 'https://www.facebook.com'
         self.login_url = 'https://www.facebook.com/login'
         # self.post_regex = '/p/[ -~]{11}/'
@@ -427,6 +438,8 @@ class pixivScraper(Scraper):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._name = 'pixiv'
+
         self.base_url = 'https://www.pixiv.net'
         self.post_url = 'https://www.pixiv.net/member_illust.php?id='
         self.login_url = 'https://accounts.pixiv.net/login'

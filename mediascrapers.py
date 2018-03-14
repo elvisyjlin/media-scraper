@@ -213,7 +213,8 @@ class InstagramScraper(Scraper):
 
         data = self.getJsonData(username)
 
-        user = data['user']
+        # user = data['user']
+        user = data['username'] # new API
         media = user['media']
         nodes = media['nodes']
 

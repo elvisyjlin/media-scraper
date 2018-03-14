@@ -214,9 +214,12 @@ class InstagramScraper(Scraper):
         data = self.getJsonData(username)
 
         # user = data['user']
-        user = data['username'] # new API
-        media = user['media']
-        nodes = media['nodes']
+        # media = user['media']
+        # nodes = media['nodes']
+
+        # New API
+        user = data['graphql']['user']
+        nodes = user['edge_owner_to_timeline_media']['edges']
 
         tasks = []
         num_post = 0
@@ -226,7 +229,8 @@ class InstagramScraper(Scraper):
                 post = self.getJsonData('p/'+node['code'])
                 tasks += parse_node(post['graphql']['shortcode_media'], username)
             data = self.getJsonData(username, nodes[-1]['id'])
-            nodes = data['user']['media']['nodes']
+            # nodes = data['user']['media']['nodes']
+            nodes = data['graphql']['user']['edge_owner_to_timeline_media']['edges']
 
         if self._mode != 'silent':
             print('{} posts are found.'.format(num_post))

@@ -6,7 +6,7 @@
 
 import os
 
-def get_basename(filename)
+def get_basename(filename):
     return filename.rsplit('.', 1)[0]
 
 def get_extension(filename):

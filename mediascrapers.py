@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from tqdm import tqdm
 from util import seleniumdriver
-from util.file import get_extension, rename_file, safe_makedirs
+from util.file import get_basename, get_extension, rename_file, safe_makedirs
 from util.instagram import parse_node
 from util.url import get_filename, complete_url, download, is_media
 

@@ -217,7 +217,6 @@ class InstagramScraper(Scraper):
         # media = user['media']
         # nodes = media['nodes']
 
-        # New API
         user = data['graphql']['user']
         nodes = user['edge_owner_to_timeline_media']['edges']
 
@@ -226,9 +225,10 @@ class InstagramScraper(Scraper):
         while len(nodes) > 0:
             num_post += len(nodes)
             for node in nodes:
-                post = self.getJsonData('p/'+node['code'])
+                # post = self.getJsonData('p/'+node['code'])
+                post = self.getJsonData('p/'+node['node']['shortcode'])
                 tasks += parse_node(post['graphql']['shortcode_media'], username)
-            data = self.getJsonData(username, nodes[-1]['id'])
+            data = self.getJsonData(username, nodes[-1]['node']['id'])
             # nodes = data['user']['media']['nodes']
             nodes = data['graphql']['user']['edge_owner_to_timeline_media']['edges']
 

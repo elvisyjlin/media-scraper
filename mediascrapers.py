@@ -20,13 +20,16 @@ from util.url import get_filename, complete_url, download, is_media
 
 class Scraper(metaclass=ABCMeta):
 
-    def __init__(self, driver='phantomjs', scroll_pause=1.0, next_page_pause=1.0, mode='normal', debug=False):
+    def __init__(self, driver='chrome', scroll_pause=1.0, next_page_pause=1.0, mode='normal', debug=False):
         self._scroll_pause_time = scroll_pause
         self._next_page_pause_time = next_page_pause
         self._login_pause_time = 5.0
         self._mode = mode
         self._debug = debug
         self._name = 'scraper'
+
+        if self._debug:
+            driver = 'chrome'
 
         if driver == 'phantomjs':
             if self._mode != 'silent':
@@ -189,17 +192,31 @@ class InstagramScraper(Scraper):
         super().__init__(**kwargs)
         self._name = 'instagram'
 
-        self.base_url = 'https://www.instagram.com'
         self.login_url = 'https://www.instagram.com/accounts/login/'
         self.json_data_url = 'https://www.instagram.com/{}/?__a=1'
         self.json_data_url_with_max_id = 'https://www.instagram.com/{}/?__a=1&max_id={}'
+        self.new_json_data_url = 'https://www.instagram.com/graphql/query/?query_hash={}&variables={{"id":"{}","first":{},"after":"{}"}}'
+        self.query_parameters = {
+            'query_hash': '472f257a40c653c64c666ce877d59d2b', 
+            'first': 12
+        }
         self.post_regex = '\/p\/[^\/]+\/'
 
-    def getJsonData(self, target, max_id=None):
-        if max_id is None:
-            self._connect(self.json_data_url.format(target))
-        else:
-            self._connect(self.json_data_url_with_max_id.format(target, max_id))
+    # def getJsonData(self, target, max_id=None):
+    #     if max_id is None:
+    #         self._connect(self.json_data_url.format(target))
+    #     else:
+    #         self._connect(self.json_data_url_with_max_id.format(target, max_id))
+    #     content = self._driver.find_element_by_tag_name('pre').text
+    #     data = json.loads(content)
+    #     return data
+
+    def getJsonData(self, user_or_id, after=None):
+        if after is None:   # user_or_id should be username
+            self._connect(self.json_data_url.format(user_or_id))
+        else:               # user_or_id should be id
+            self._connect(self.new_json_data_url.format(
+                self.query_parameters['query_hash'], user_or_id, self.query_parameters['first'], after))
         content = self._driver.find_element_by_tag_name('pre').text
         data = json.loads(content)
         return data
@@ -218,19 +235,32 @@ class InstagramScraper(Scraper):
         # nodes = media['nodes']
 
         user = data['graphql']['user']
-        nodes = user['edge_owner_to_timeline_media']['edges']
+        user_id = user['id']
+        media = user['edge_owner_to_timeline_media']
+        count = media['count']
+        # print('Count: {}'.format(count))
+        page_info = media['page_info']
+        edges = media['edges']
+        has_next_page = page_info['has_next_page']
+        end_cursor = page_info['end_cursor']
 
         tasks = []
         num_post = 0
-        while len(nodes) > 0:
-            num_post += len(nodes)
-            for node in nodes:
+        while len(edges) > 0:
+            num_post += len(edges)
+            for edge in edges:
                 # post = self.getJsonData('p/'+node['code'])
-                post = self.getJsonData('p/'+node['node']['shortcode'])
+                post = self.getJsonData('p/'+edge['node']['shortcode'])
                 tasks += parse_node(post['graphql']['shortcode_media'], username)
-            data = self.getJsonData(username, nodes[-1]['node']['id'])
             # nodes = data['user']['media']['nodes']
-            nodes = data['graphql']['user']['edge_owner_to_timeline_media']['edges']
+            if has_next_page:
+                # data = self.getJsonData(username, edges[-1]['node']['id'])
+                data = self.getJsonData(user_id, end_cursor)
+                edges = data['data']['user']['edge_owner_to_timeline_media']['edges']
+                has_next_page = data['data']['user']['edge_owner_to_timeline_media']['page_info']['has_next_page']
+                end_cursor = data['data']['user']['edge_owner_to_timeline_media']['page_info']['end_cursor']
+            else:
+                break
 
         if self._mode != 'silent':
             print('{} posts are found.'.format(num_post))

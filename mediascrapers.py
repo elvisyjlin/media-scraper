@@ -20,7 +20,7 @@ from util.url import get_filename, complete_url, download, is_media
 
 class Scraper(metaclass=ABCMeta):
 
-    def __init__(self, driver='chrome', scroll_pause=1.0, next_page_pause=1.0, mode='normal', debug=False):
+    def __init__(self, driver='phantomjs', scroll_pause=1.0, next_page_pause=1.0, mode='normal', debug=False):
         self._scroll_pause_time = scroll_pause
         self._next_page_pause_time = next_page_pause
         self._login_pause_time = 5.0

@@ -13,7 +13,25 @@ pip3 install -r requirements
 ##### Crawl all media in a page
 
 ```bash
-python3 tumblrer.py <url_1> <url_2> <...> --save_path=<folder>
+python3 tumblrer.py <url_1> <url_2> <...> --save_path=<folder> <--early_stop>
+```
+
+The argument `--early_stop` specifies that Tumblrer stops if it meets an existing media (in your download folder).
+
+The crawled media will be stored as the following structure.
+
+```
+ - <folder>
+   - site1
+     - photo
+       - img1
+       - img2
+       - ...
+     - video
+       - vid1
+       - vid2
+   - site2
+   - ...
 ```
 
 ##### Utilize Tumblr in your program

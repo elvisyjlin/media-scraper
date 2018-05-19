@@ -24,7 +24,8 @@ VAR = {
 def parse():
     parser = argparse.ArgumentParser(description="Tumblrer")
     parser.add_argument('urls', nargs='*', help='urls to crawl')
-    parser.add_argument('--save_path', default='./download', help='path to save')
+    parser.add_argument('--save_path', type=str, default='./download', help='path to save')
+    parser.add_argument('--early_stop', action='store_true')
     return parser.parse_args()
 
 def path(path):
@@ -41,16 +42,16 @@ def get(url, start=0, num=50):
 
 def download(img_url, filename):
     if os.path.exists(filename):
-        return False
+        return 1
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     log('Download {}'.format(img_url))
     res = requests.get(img_url, stream=True, timeout=10)
     with open(filename, 'wb') as f:
         shutil.copyfileobj(res.raw, f)
     del res
-    return True
+    return 0
 
-def crawl(url, start=0, num=50):
+def crawl(url, early_stop=False, start=0, num=50):
     print('Tumblrer Task', url)
     total = start + 1
     while start < total:
@@ -68,12 +69,14 @@ def crawl(url, start=0, num=50):
                 success = False
                 while not success:
                     try:
-                        download(img_url, filename)
+                        res = download(img_url, filename)
                         success = True
                     except Exception as e:
                         print(e)
                         print('Sleep for 1 minutes...')
                         time.sleep(1 * 60)
+                if early_stop and res == 1:
+                    return 0
             else:
                 print(post['id'], post['url'], post['type'])
             if 'photos' in post and post['photos'] != []:
@@ -92,10 +95,11 @@ def crawl(url, start=0, num=50):
                             print('Sleep for 1 minutes...')
                             time.sleep(1 * 60)
         start += num
+    return 0
 
 if __name__ == '__main__':
     args = parse()
     print(args)
     path(args.save_path)
     for url in args.urls:
-        crawl(url)
+        crawl(url, args.early_stop)

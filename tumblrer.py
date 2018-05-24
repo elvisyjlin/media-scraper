@@ -45,7 +45,7 @@ def download(img_url, filename):
         return 1
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     log('Download {}'.format(img_url))
-    res = requests.get(img_url, stream=True, timeout=10)
+    res = requests.get(img_url, stream=True, timeout=10, verify=False)
     with open(filename, 'wb') as f:
         shutil.copyfileobj(res.raw, f)
     del res

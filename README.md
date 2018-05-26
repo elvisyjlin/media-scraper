@@ -49,3 +49,10 @@ Note that Tumblrer skips existing files automatically.
 ```bash
 python3 stat.py
 ```
+
+
+## Instagramer
+
+The usage of `instagramer` is exactly the same as `tumblrer`.
+
+It is implemented following the latest Instagram query API.

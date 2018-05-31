@@ -98,8 +98,8 @@ class Scraper(metaclass=ABCMeta):
     def download(self, tasks, path='.', force=False):
         if self._mode != 'silent':
             print('Downloading...')
-        for url, rename in tqdm(tasks):
-            download(url, path=path, rename=rename, replace=force)
+        for url, folder, rename in tqdm(tasks):
+            download(url, path=os.path.join(path, folder), rename=rename, replace=force)
 
     @abstractmethod
     def login(self):
@@ -143,7 +143,7 @@ class MediaScraper(Scraper):
         if self._debug:
             print(media_urls)
 
-        tasks = [(complete_url(media_url, self._driver.current_url), None) for media_url in media_urls]
+        tasks = [(complete_url(media_url, self._driver.current_url), None, None) for media_url in media_urls]
 
         if self._debug:
             print(tasks)
@@ -251,12 +251,17 @@ class InstagramScraper(Scraper):
             for edge in edges:
                 # post = self.getJsonData('p/'+node['code'])
                 post = self.getJsonData('p/'+edge['node']['shortcode'])
-                tasks += parse_node(post['graphql']['shortcode_media'], username)
+                task = parse_node(post['graphql']['shortcode_media'])
+                tasks += (task[0], username, task[1])
             # nodes = data['user']['media']['nodes']
             if has_next_page:
                 # data = self.getJsonData(username, edges[-1]['node']['id'])
                 data = self.getJsonData(user_id, end_cursor)
-                edges = data['data']['user']['edge_owner_to_timeline_media']['edges']
+                try:
+                    edges = data['data']['user']['edge_owner_to_timeline_media']['edges']
+                except Exception as e:
+                    print(data)
+                    print(e)
                 has_next_page = data['data']['user']['edge_owner_to_timeline_media']['page_info']['has_next_page']
                 end_cursor = data['data']['user']['edge_owner_to_timeline_media']['page_info']['end_cursor']
             else:
@@ -386,7 +391,7 @@ class TwitterScraper(Scraper):
         tasks = []
         for div in soup.find_all('div', { "class" : "AdaptiveMedia-photoContainer" }):
             url = div.get('data-image-url')
-            tasks.append((url+':large', username + ' ' + get_basename(get_filename(url))))
+            tasks.append((url+':large', username, get_basename(get_filename(url))))
 
         if self._mode != 'silent':
             print('{} media are found.'.format(len(tasks)))
@@ -443,7 +448,7 @@ class FacebookScraper(Scraper):
         tasks = []
         for div in soup.find_all('div', { "class" : "AdaptiveMedia-photoContainer" }):
             url = div.get('data-image-url')
-            tasks.append((url+':large', get_filename(url)))
+            tasks.append((url+':large', username, get_filename(url)))
 
         if self._mode != 'silent':
             print('{} media are found.'.format(len(tasks)))

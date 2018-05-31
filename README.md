@@ -47,16 +47,23 @@ python3 -m mediascraper.general [WEB PAGE 1] [WEB PAGE 2] ...
 The media will be stored in the folder `download/general`.
 
 ```bash
-python3 -m mediascraper.instagram [USER ID 1] [USER ID 2] ...
+python3 -m mediascraper.instagram [USER NAME 1] [USER NAME 2] ...
 ```
 
 The media will be stored in the folder `download/instagram`.
 
 ```bash
-python3 -m mediascraper.twitter [USER ID 1] [USER ID 2] ...
+python3 -m mediascraper.twitter [USER NAME 1] [USER NAME 2] ...
 ```
 
 The media will be stored in the folder `download/twitter`.
+
+
+For example, to scrape [`Twitter`](https://twitter.com/Twitter)
+
+```bash
+python3 -m mediascraper.twitter Twitter
+```
 
 
 ### Login with Credentials
@@ -110,3 +117,18 @@ Scraper | Methods
 MediaScraper | `connect(URL)`
 InstagramScraper | `username(USERNAME)`
 TwitterScraper | `username(USERNAME)`
+
+
+## Note
+
+
+### Instagram
+
+Instagram changed API 3 times this year (2018), so the query API in `media-scraper` is out-of-date. 
+Please see [instagramer.py](https://github.com/elvisyjlin/tumblrer), which works well for downloading all media form Instagram.
+
+
+### Twitter
+
+For some reasons, Twitter utilizes blob url for videos, which is not supported by `media-scraper` currently. 
+I'm still working on this problem.

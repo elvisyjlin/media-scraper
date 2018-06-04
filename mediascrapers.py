@@ -41,6 +41,8 @@ class Scraper(metaclass=ABCMeta):
             self._driver = seleniumdriver.get('Chrome')
         else:
             raise Exception('Driver not found "{}".'.format(driver))
+            
+        # self._driver.set_window_size(1920, 1080)
 
     def _connect(self, url):
         if self._debug:
@@ -411,6 +413,8 @@ class TwitterScraper(Scraper):
         password = self._driver.find_element_by_name('session[password]')
         buttons = self._driver.find_elements_by_tag_name('button')
         button = [b for b in buttons if b.text != ''][0]
+        self._driver.save_screenshot('test.jpg')
+        self._driver.implicitly_wait(10)
 
         username.send_keys(credentials['username'])
         password.send_keys(credentials['password'])

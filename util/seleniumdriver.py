@@ -16,9 +16,9 @@ SRC_URL_DICT = {
     'webdriver/phantomjsdriver_2.1.1_mac64/phantomjs': 'https://www.dropbox.com/s/b6hmitsz1u4wc5w/phantomjs?dl=1', 
     'webdriver/phantomjsdriver_2.1.1_linux32/phantomjs': 'https://www.dropbox.com/s/xxka7isoskg53tr/phantomjs?dl=1', 
     'webdriver/phantomjsdriver_2.1.1_linux64/phantomjs': 'https://www.dropbox.com/s/dhuw71d9l5umk5m/phantomjs?dl=1', 
-    'webdriver/chromedriver_2.35_win32/chromedriver.exe': 'https://www.dropbox.com/s/k8dibiirz35zjf0/chromedriver.exe?dl=1', 
-    'webdriver/chromedriver_2.35_mac64/chromedriver': 'https://www.dropbox.com/s/jatcb8n8lqijat9/chromedriver?dl=1', 
-    'webdriver/chromedriver_2.35_linux64/chromedriver': 'https://www.dropbox.com/s/vgyik5zsngpkck4/chromedriver?dl=1', 
+    'webdriver/chromedriver_2.39_win32/chromedriver.exe': 'https://www.dropbox.com/s/k8dibiirz35zjf0/chromedriver.exe?dl=1', 
+    'webdriver/chromedriver_2.39_mac64/chromedriver': 'https://www.dropbox.com/s/jatcb8n8lqijat9/chromedriver?dl=1', 
+    'webdriver/chromedriver_2.39_linux64/chromedriver': 'https://www.dropbox.com/s/vgyik5zsngpkck4/chromedriver?dl=1', 
     'webdriver/geckodriver_0.19.1_win32/geckodriver.exe': 'https://www.dropbox.com/s/s10tyhwc8z9nikg/geckodriver.exe?dl=1', 
     'webdriver/geckodriver_0.19.1_win64/geckodriver.exe': 'https://www.dropbox.com/s/r9zt6l9c7cn1pc8/geckodriver.exe?dl=1', 
     'webdriver/geckodriver_0.19.1_macos/geckodriver': 'https://www.dropbox.com/s/la2bfgdsdk2mrhj/geckodriver?dl=1', 
@@ -83,11 +83,11 @@ def get_source(driverType, path='.'):
             raise Exception('Failed to recognize your OS [%s / %s].' % (os, bits))
     elif driverType == 'Chrome':
         if os == 'Windows':
-            source = join(path, 'webdriver/chromedriver_2.35_win32/chromedriver.exe')
+            source = join(path, 'webdriver/chromedriver_2.39_win32/chromedriver.exe')
         elif os == 'Darwin':
-            source = join(path, 'webdriver/chromedriver_2.35_mac64/chromedriver')
+            source = join(path, 'webdriver/chromedriver_2.39_mac64/chromedriver')
         elif os == 'Linux':
-            source = join(path, 'webdriver/chromedriver_2.35_linux64/chromedriver')
+            source = join(path, 'webdriver/chromedriver_2.39_linux64/chromedriver')
         else:
             raise Exception('Failed to recognize your OS [%s / %s].' % (os, bits))
     elif driverType == 'Firefox':
@@ -119,4 +119,5 @@ def get_source(driverType, path='.'):
                 with open(source, "wb") as f:
                     f.write(data)
                 print('Web driver "%s" has been downloaded successfully.' % source)
+    print(source)
     return source

@@ -42,6 +42,20 @@ pip3 install -r requirements.txt
 `media-scraper` loads the content of a web page by web driver (PhantomJS). 
 The needed web driver will be downloaded automatically when it is used.
 
+If you meet permission error, for example,  
+
+```python
+selenium.common.exceptions.WebDriverException: Message: 'phantomjs' executable may have wrong permissions.
+```
+
+Please set the web driver to `777` for convenience.
+
+```bash
+chmod 777 webdriver/phantomjsdriver_2.1.1_win32/phantomjs.exe
+chmod 777 webdriver/phantomjsdriver_2.1.1_mac64/phantomjs
+chmod 777 webdriver/phantomjsdriver_2.1.1_linux64/phantomjs
+```
+
 
 ## To Scrape
 

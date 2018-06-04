@@ -10,7 +10,7 @@ import sys
 import time
 import re
 from abc import ABCMeta, abstractmethod
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from tqdm import tqdm
 from util import seleniumdriver
@@ -129,7 +129,7 @@ class MediaScraper(Scraper):
         # Parse links, images, and videos successively by BeautifulSoup parser.
 
         media_urls = [] 
-        soup = BeautifulSoup(source, 'lxml')
+        soup = bs(source, 'html.parser')
         for link in soup.find_all('a', href=True):
             if is_media(link['href']):
                 media_urls.append(link['href'])
@@ -382,7 +382,7 @@ class TwitterScraper(Scraper):
         done = self.scrollToBottom()
 
         source = self.source()
-        soup = BeautifulSoup(source, 'lxml')
+        soup = bs(source, 'html.parser')
 
         # title = soup.find('title')
         # name = title.get_text().replace('Media Tweets by ', '').replace(' | Twitter', '')
@@ -409,9 +409,11 @@ class TwitterScraper(Scraper):
         self._connect(self.login_url)
         time.sleep(self._login_pause_time)
 
-        username = self._driver.find_element_by_name('session[username_or_email]')
-        password = self._driver.find_element_by_name('session[password]')
+        usernames = self._driver.find_elements_by_name('session[username_or_email]')
+        passwords = self._driver.find_elements_by_name('session[password]')
         buttons = self._driver.find_elements_by_tag_name('button')
+        username = [u for u in usernames if u.get_attribute('class') == 'js-username-field email-input js-initial-focus'][0]
+        password = [p for p in passwords if p.get_attribute('class') == 'js-password-field'][0]
         button = [b for b in buttons if b.text != ''][0]
         self._driver.save_screenshot('test.jpg')
         self._driver.implicitly_wait(10)
@@ -441,7 +443,7 @@ class FacebookScraper(Scraper):
         done = self.scrollToBottom()
 
         source = self.source()
-        soup = BeautifulSoup(source, 'lxml')
+        soup = bs(source, 'html.parser')
 
         # title = soup.find('title')
         # name = title.get_text().replace('Media Tweets by ', '').replace(' | Twitter', '')
@@ -518,7 +520,7 @@ class pixivScraper(Scraper):
         done = self.scrollToBottom()
 
         source = self.source()
-        soup = BeautifulSoup(source, 'lxml')
+        soup = bs(source, 'html.parser')
 
         # title = soup.find('title')
         # name = title.get_text().replace('Media Tweets by ', '').replace(' | Twitter', '')

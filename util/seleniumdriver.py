@@ -111,13 +111,19 @@ def get_source(driverType, path='.'):
         for (src, url) in SRC_URL_DICT.items():
             if src in source:
                 print('Start downloading the web driver...')
-                makedirs(dirname(source))
-                import urllib.request
-                u = urllib.request.urlopen(url)
-                data = u.read()
-                u.close()
+                makedirs(dirname(source), exist_ok=True)
+                # import urllib.request
+                import requests
+                import shutil
+                from requests.packages.urllib3.exceptions import InsecureRequestWarning
+                requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+                # u = urllib.request.urlopen(url)
+                # data = u.read()
+                # u.close()
+                res = requests.get(url, stream=True)
                 with open(source, "wb") as f:
-                    f.write(data)
+                    # f.write(data)
+                    shutil.copyfileobj(res.raw, f)
                 print('Web driver "%s" has been downloaded successfully.' % source)
     print(source)
     return source

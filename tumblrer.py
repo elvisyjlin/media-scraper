@@ -24,8 +24,8 @@ VAR = {
 def parse():
     parser = argparse.ArgumentParser(description="Tumblrer")
     parser.add_argument('urls', nargs='*', help='urls to crawl')
-    parser.add_argument('--save_path', type=str, default='./download', help='path to save')
-    parser.add_argument('--early_stop', action='store_true')
+    parser.add_argument('-s', '--save_path', type=str, default='./download', help='path to save')
+    parser.add_argument('-e', '--early_stop', action='store_true')
     return parser.parse_args()
 
 def path(path):
@@ -52,7 +52,7 @@ def download(img_url, filename):
     return 0
 
 def crawl(url, early_stop=False, start=0, num=50):
-    print('Tumblrer Task', url)
+    print('Tumblrer Task:', url)
     total = start + 1
     while start < total:
         content = get(url, start, num)
@@ -107,4 +107,11 @@ if __name__ == '__main__':
     print(args)
     path(args.save_path)
     for url in args.urls:
-        crawl(url, args.early_stop)
+        if url.endswith('.txt') and os.path.exists(url):
+            with open(url, 'r') as f:
+                uns = [un.strip() for un in f.read().split()]
+                print('In file', url, 'finds usernames:', uns)
+                for un in uns:
+                    crawl(un, args.early_stop)
+        else:
+            crawl(url, args.early_stop)

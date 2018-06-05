@@ -24,8 +24,8 @@ VAR = {
 def parse():
     parser = argparse.ArgumentParser(description="Instagramer")
     parser.add_argument('usernames', nargs='*', help='usernames to crawl')
-    parser.add_argument('--save_path', default='./download_instagram', help='path to save')
-    parser.add_argument('--early_stop', action='store_true')
+    parser.add_argument('-s', '--save_path', default='./download_instagram', help='path to save')
+    parser.add_argument('-e', '--early_stop', action='store_true')
     return parser.parse_args()
 
 def path(path):
@@ -60,7 +60,7 @@ def perform(tasks, username):
     return res
     
 def crawl(username, early_stop=False):
-    print('Instagramer Task', username)
+    print('Instagramer Task:', username)
     tasks, end_cursor, has_next, length, user_id, rhx_gis, csrf_token = getFirstPage(username)
     res = perform(tasks, username)
     if early_stop and res == 1:
@@ -76,4 +76,11 @@ if __name__ == '__main__':
     print(args)
     path(args.save_path)
     for username in args.usernames:
-        crawl(username, args.early_stop)
+        if username.endswith('.txt') and os.path.exists(username):
+            with open(username, 'r') as f:
+                uns = [un.strip() for un in f.read().split()]
+                print('In file', username, 'finds usernames:', uns)
+                for un in uns:
+                    crawl(un, args.early_stop)
+        else:
+            crawl(username, args.early_stop)

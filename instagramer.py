@@ -78,7 +78,7 @@ if __name__ == '__main__':
     for username in args.usernames:
         if username.endswith('.txt') and os.path.exists(username):
             with open(username, 'r') as f:
-                uns = [un.strip() for un in f.read().split()]
+                uns = [un.strip() for un in f.read().split() if not un.startswith('#')]
                 print('In file', username, 'finds usernames:', uns)
                 for un in uns:
                     crawl(un, args.early_stop)

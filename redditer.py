@@ -48,11 +48,14 @@ def safe_download(subreddit, name, img_url):
         try:
             download(img_url, filename)
             success = True
+        except requests.exceptions.ConnectionError as e:
+            print(e)
+            print(img_url, filename)
+            print('Skip this.')
+            break
         except Exception as e:
             print(e)
             print(img_url, filename)
-            with open('error_reddit', 'w', encoding='utf-8') as f:
-                f.write(res)
             print('Sleep for 1 hour...')
             time.sleep(1*60*60)
     
@@ -76,10 +79,11 @@ def crawl(subreddit, early_stop=False):
             name = child['data']['name']
             img_url = child['data']['url']
             if os.path.splitext(img_url)[1] == '':
-                if 'imgur' in img_url:
+                if 'imgur.com/' in img_url:
                     img_url = get_imgur(img_url)
-                    safe_download(subreddit, name, img_url)
-                elif 'gfycat' in img_url:
+                    if img_url is not None:
+                        safe_download(subreddit, name, img_url)
+                elif 'gfycat.com/' in img_url:
                     for vid_url in get_gfycat(img_url):
                         safe_download(subreddit, name, vid_url)
                 else:
@@ -99,7 +103,7 @@ if __name__ == '__main__':
     for subreddit in args.subreddits:
         if subreddit.endswith('.txt') and os.path.exists(subreddit):
             with open(subreddit, 'r') as f:
-                uns = [un.strip() for un in f.read().split()]
+                uns = [un.strip() for un in f.read().split() if not un.startswith('#')]
                 print('In file', subreddit, 'finds usernames:', uns)
                 for un in uns:
                     crawl(un, args.early_stop)

@@ -16,7 +16,18 @@ def get_imgur(url):
     IMGUR_JPG = 'https://i.imgur.com/{}.jpg'
     
     img_id = url.rsplit('/', 1)[1]
-    content_type = requests.head(IMGUR_JPG.format(img_id)).headers['Content-Type']
+    res = requests.head(IMGUR_JPG.format(img_id))
+    
+    if int(res.headers['Content-Length']) == 0:
+        return None
+    
+    try:
+        content_type = res.headers['Content-Type']
+    except Exception as e:
+        print(IMGUR_JPG.format(img_id))
+        print(res.headers)
+        raise e
+        
     ext = content_type.split('/')[1]
     ext = 'jpg' if ext == 'jpeg' else ext
     

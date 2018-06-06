@@ -97,7 +97,7 @@ def crawl(url, early_stop=False, start=0, num=50):
                             success = True
                         except Exception as e:
                             print(e)
-                            print('Sleep for 1 minutes...')
+                            print('Sleep for 1 minute...')
                             time.sleep(1 * 60)
         start += num
     return 0
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     for url in args.urls:
         if url.endswith('.txt') and os.path.exists(url):
             with open(url, 'r') as f:
-                uns = [un.strip() for un in f.read().split()]
+                uns = [un.strip() for un in f.read().split() if not un.startswith('#')]
                 print('In file', url, 'finds usernames:', uns)
                 for un in uns:
                     crawl(un, args.early_stop)

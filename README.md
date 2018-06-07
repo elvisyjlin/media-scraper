@@ -147,7 +147,9 @@ Instagram changed API 3 times this year (2018), so the query API in `media-scrap
 Please see [`instagramer.py`](https://github.com/elvisyjlin/tumblrer), which works well for downloading all media form Instagram.
 
 
-### Twitter
+### Twitter [Solved]
 
 For some reasons, Twitter utilizes blob url for videos, which is not supported by `media-scraper` currently. 
 I'm still working on this problem.
+
+06/07/2018 Update: It supports downloading videos in Twitter now!

@@ -16,6 +16,7 @@ from tqdm import tqdm
 from util import seleniumdriver
 from util.file import get_basename, get_extension, rename_file, safe_makedirs
 from util.instagram import parse_node
+from util.twitter import get_twitter_video_url
 from util.url import get_filename, complete_url, download, is_media
 
 class Scraper(metaclass=ABCMeta):
@@ -391,8 +392,19 @@ class TwitterScraper(Scraper):
         # background_url = soup.find("div", { "class" : "ProfileCanopy-headerBg" }).find('img').get('src')
 
         tasks = []
+        for li in soup.find_all('li', {'class': 'js-stream-item stream-item stream-item '}):
+            photos = li.find_all('div', { "class" : "AdaptiveMedia-photoContainer" })
+            if photos == []:
+                img_url, vid_url = get_twitter_video_url(li['data-item-id'])
+                tasks.append((img_url+':large', username, get_basename(get_filename(img_url))))
+                tasks.append((vid_url, username, get_basename(get_filename(vid_url))))
+            else:
+                for photo in photos:
+                    url = photo['data-image-url']
+                    tasks.append((url+':large', username, get_basename(get_filename(url))))
+                    
         for div in soup.find_all('div', { "class" : "AdaptiveMedia-photoContainer" }):
-            url = div.get('data-image-url')
+            url = div['data-image-url']
             tasks.append((url+':large', username, get_basename(get_filename(url))))
 
         if self._mode != 'silent':
@@ -415,7 +427,7 @@ class TwitterScraper(Scraper):
         username = [u for u in usernames if u.get_attribute('class') == 'js-username-field email-input js-initial-focus'][0]
         password = [p for p in passwords if p.get_attribute('class') == 'js-password-field'][0]
         button = [b for b in buttons if b.text != ''][0]
-        self._driver.save_screenshot('test.jpg')
+        self._driver.save_screenshot('test.png')
         self._driver.implicitly_wait(10)
 
         username.send_keys(credentials['username'])

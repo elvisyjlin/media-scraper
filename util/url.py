@@ -8,6 +8,7 @@ import os
 import urllib
 import requests
 from util.file import rename_file, safe_makedirs
+from util.twitter import twitter_m3u8
 
 def get_filename(url):
     return url.rsplit('/')[-1].split(':')[0]
@@ -40,14 +41,17 @@ def download(url, path='.', rename=None, replace=True):
         print('The file {} exists. Skip it.'.format(file))
         return
 
-    r = requests.get(url, stream=True)
-    if r.status_code == 200:
-        safe_makedirs(path)
-        with open(file, 'wb') as f:
-            for chunk in r:
-                f.write(chunk)
-    else:
-        print('Error: status code of {} "{}" is {}.'.format(filename, url, r.status_code))
+    if '.m3u8' in url:
+        twitter_m3u8(url, file.replace('.m3u8', '.ts'))
+    else:    
+        r = requests.get(url, stream=True)
+        if r.status_code == 200:
+            safe_makedirs(path)
+            with open(file, 'wb') as f:
+                for chunk in r:
+                    f.write(chunk)
+        else:
+            print('Error: status code of {} "{}" is {}.'.format(filename, url, r.status_code))
 
 # Guess the type of url by its mime format.
 #

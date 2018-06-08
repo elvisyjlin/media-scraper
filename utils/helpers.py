@@ -1,4 +1,5 @@
 import requests
+import os
 
 def log(msg, file='log.txt'):
     print(msg)

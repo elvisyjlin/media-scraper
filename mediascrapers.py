@@ -395,9 +395,14 @@ class TwitterScraper(Scraper):
         for li in soup.find_all('li', {'class': 'js-stream-item stream-item stream-item '}):
             photos = li.find_all('div', { "class" : "AdaptiveMedia-photoContainer" })
             if photos == []:
-                img_url, vid_url = get_twitter_video_url(li['data-item-id'])
-                tasks.append((img_url+':large', username, get_basename(get_filename(img_url))))
-                tasks.append((vid_url, username, get_basename(get_filename(vid_url))))
+                try:
+                    img_url, vid_url = get_twitter_video_url(li['data-item-id'])
+                    tasks.append((img_url+':large', username, get_basename(get_filename(img_url))))
+                    tasks.append((vid_url, username, get_basename(get_filename(vid_url))))
+                except Exception as e:
+                    with open('error.txt', 'w', encoding='utf-8') as f:
+                        f.write(str(e) + '\n')
+                        f.write(str(li))
             else:
                 for photo in photos:
                     url = photo['data-image-url']

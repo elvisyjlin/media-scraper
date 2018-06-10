@@ -373,6 +373,7 @@ class TwitterScraper(Scraper):
         self.base_url = 'https://twitter.com'
         self.login_url = 'https://twitter.com/login'
         # self.post_regex = '/p/[ -~]{11}/'
+        self.scroll_pause = 3.0
 
     def scrape(self, username):
         self._connect('{}/{}/media'.format(self.base_url, username))

@@ -15,9 +15,14 @@ def getSharedData(username):
     success = False
     while not success:
         try:
+            content = res = None
             # print('Get', 'https://www.instagram.com/' + username, 'with',  headers)
             res = requests.get('https://www.instagram.com/' + username, headers=headers, verify=False)
             # print(res)
+            if res.status_code == 404:
+                with open('404.txt', 'w', encoding='utf-8') as f:
+                    f.write(username + '\n')
+                return None
             while res.status_code != 200:
                 print('Got response', res.status_code)
                 print('Sleep for 1 hour...')
@@ -34,10 +39,22 @@ def getSharedData(username):
             sharedData = json.loads(m.groups()[0])
             success = True
         except Exception as e:
-            with open('error', 'w', 'utf-8') as f:
-                f.write(content)
-            print(e)
-            print('content', content)
+            with open('latest', 'w', encoding='utf-8') as f:
+                f.write('====>' + username + '\n')
+                if res is None:
+                    print('res is None')
+                    f.write('res is None\n')
+                elif content is None:
+                    print('Status code:', res.status_code)
+                    f.write('Status code: ' + res.status_code + '\n')
+                else:
+                    with open('error', 'w', encoding='utf-8') as f:
+                        f.write(content)
+                    print(e)
+                    print('Status code:', res.status_code)
+                    # print('content:', content)
+            print('Sleep for 1 hour...')
+            time.sleep(1 * 60 * 60)
     return sharedData
 
 def get_x_instagram_gis(rhx_gis, url):
@@ -49,6 +66,8 @@ def get_x_instagram_gis(rhx_gis, url):
 
 def getFirstPage(username):
     sharedData = getSharedData(username)
+    if sharedData is None:
+        return None, None, None, None, None, None, None
     csrf_token = sharedData['config']['csrf_token']
     rhx_gis = sharedData['rhx_gis']
 
@@ -94,14 +113,20 @@ def getFollowingPage(query_hash, user_id, after, rhx_gis, csrf_token):
     }
     success = False
     while not success:
+        res = None
         try:
             res = requests.get(url, headers=headers, cookies=cookies, verify=False)
             edge_owner_to_timeline_media = json.loads(res.text)['data']['user']['edge_owner_to_timeline_media']
             success = True
         except Exception as e:
+            with open('latest', 'w', encoding='utf-8') as f:
+                f.write(url)
             print(e)
             with open('error', 'w', encoding='utf-8') as f:
-                f.write(res.text)
+                if res is None:
+                    f.write('res is None...')
+                else:
+                    f.write(res.text)
             print('Sleep for 1 hour...')
             time.sleep(1 * 60 * 60)
     count = edge_owner_to_timeline_media['count']
@@ -183,6 +208,9 @@ def retrieve_node_from_shortcode(shortcode):
             node = json.loads(res.text)['graphql']['shortcode_media']
             success = True
         except Exception as e:
+            with open('latest', 'w', encoding='utf-8') as f:
+                f.write(url)
+            print(url)
             print(e)
             print('Sleep for 1 hour...')
             time.sleep(1 * 60 * 60)

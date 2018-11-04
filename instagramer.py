@@ -18,7 +18,7 @@ class Instagramer(Downloader):
             'first': 12
         }
 
-    def perform(self, tasks, username):
+    def perform(self, tasks, username, early_stop=False):
         print('# of tasks:', len(tasks))
         res = 0
         for img_url, filename in tasks:
@@ -32,17 +32,21 @@ class Instagramer(Downloader):
                     print('Sleep for 1 hour...')
                     time.sleep(1 * 60 * 60)
             res = res or res_t
+            if early_stop and res == 1:
+                return res
         return res
     
     def crawl(self, username, early_stop=False):
         print('Instagramer Task:', username)
         tasks, end_cursor, has_next, length, user_id, rhx_gis, csrf_token = getFirstPage(username)
-        res = self.perform(tasks, username)
+        if tasks is None:
+            return -1
+        res = self.perform(tasks, username, early_stop=early_stop)
         if early_stop and res == 1:
             return 0
         while has_next:
             tasks, end_cursor, has_next, length = getFollowingPage(query_hash, user_id, end_cursor, rhx_gis, csrf_token)
-            res = self.perform(tasks, username)
+            res = self.perform(tasks, username, early_stop=early_stop)
             if early_stop and res == 1:
                 return 0
 

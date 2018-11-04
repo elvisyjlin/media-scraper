@@ -3,6 +3,7 @@ import json
 import time
 import os
 from downloader import Downloader
+from utils.helpers import log
 
 # VAR = {
 #     'save_path': '.', 
@@ -10,7 +11,7 @@ from downloader import Downloader
 # }
     
 class Tumblrer(Downloader):
-    def __init__(self):
+    def __init__(self, target='photo'):
         super(Tumblrer).__init__()
         self.description = 'Tumblrer'
         self.keyword = 'sitename'
@@ -22,6 +23,11 @@ class Tumblrer(Downloader):
                 'read': '/api/read/json'
             }
         }
+        
+        if target == 'media':
+            self.crawl = self.crawl_media
+        elif target == 'article':
+            self.crawl = self.crawl_article
 
     def get(self, sitename, start=0, num=50):
         url = sitename + self.api['v1']['read']
@@ -32,7 +38,7 @@ class Tumblrer(Downloader):
         del res
         return content
     
-    def crawl(self, sitename, early_stop=False, start=0, num=50):
+    def crawl_media(self, sitename, early_stop=False, start=0, num=50):
         print('Tumblrer Task:', sitename)
         total = start + 1
         while start < total:
@@ -82,7 +88,29 @@ class Tumblrer(Downloader):
                                 time.sleep(1 * 60)
             start += num
         return 0
+    
+    def crawl_article(self, sitename, early_stop=False, start=0, num=50):
+        print('Tumblrer Task:', sitename)
+        total = start + 1
+        total_posts = []
+        while start < total:
+            content = self.get(sitename, start, num)
+            if type(content) is not dict:
+                start += 1
+                continue
+            with open('current.json', 'w') as f:
+                f.write(json.dumps(content))
+            blog_name = content['tumblelog']['name']
+            start = content['posts-start']
+            total = content['posts-total']
+            posts = content['posts']
+            total_posts += posts
+            print('[{}/{}]'.format(start, total), '# of posts: {}'.format(len(posts)))
+            start += num
+        with open('posts.json', 'w', encoding='utf-8') as f:
+            f.write(json.dumps(total_posts))
+        return 0
 
 if __name__ == '__main__':
-    tumblrer = Tumblrer()
+    tumblrer = Tumblrer(target="article")
     tumblrer.run()

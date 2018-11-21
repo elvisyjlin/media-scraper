@@ -1,11 +1,35 @@
 import requests
 import os
+import time
 
 def log(msg, file='log.txt'):
     print(msg)
     with open(file, 'a') as f:
         f.write(msg + '\n')
-        
+
+def request_get(url, fn=None, **kwarg):
+    res = None
+    data = None
+    success = False
+    while not success:
+        try:
+            res = requests.get(url, **kwarg)
+            text = res.text
+            data = text if fn is None else fn(text)
+            success = True
+        except Exception as e:
+            print('Error when getting', url)
+            f = open('error.txt', 'w', encoding='utf-8')
+            f.write(url + '\n\n')
+            if res is not None:
+                f.write(text + '\n\n')
+            f.write(str(e))
+            f.close()
+            print('Error details are saved in error.txt')
+            print('Sleep for 1 hour...')
+            time.sleep(1 * 60 * 60)
+    return data
+
 def get_imgur(url):
     '''
     Returns an image url (jpg, png, gif, ...) of the given Imgur url.

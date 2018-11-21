@@ -5,8 +5,8 @@ It supports general-purpose scraping as well as SNS-specific scraping.
 
 `media-scraper` utilizes the web driver to simulate a user browsing web pages. 
 With the web driver, sessions and cookies easily can be handled easily but it works slightly slowly.
-On the other hand, I'm currently working on another [repository](https://github.com/elvisyjlin/tumblrer), 
-which crawls media only by HTTP requests.
+On the other hand, I'm currently working on the migration of another [repository](https://github.com/elvisyjlin/tumblrer), 
+which crawls media only by HTTP requests, to this repository. See [here](https://github.com/elvisyjlin/media-scraper/tree/master/tumblrer).
 
 
 ##### General-purpose Scraping
@@ -144,7 +144,7 @@ TwitterScraper | `username(USERNAME)`
 ### Instagram
 
 Instagram changed API 3 times this year (2018), so the query API in `media-scraper` is out-of-date. 
-Please see [`instagramer.py`](https://github.com/elvisyjlin/tumblrer), which works well for downloading all media form Instagram.
+Please see [`instagramer.py`](https://github.com/elvisyjlin/media-scraper/blob/master/tumblrer/instagramer.py), which works well for downloading all media form Instagram.
 
 
 ### Twitter [Solved]

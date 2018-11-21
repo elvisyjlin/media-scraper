@@ -7,14 +7,11 @@ import time
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-from utils.helpers import log
-
 class Downloader():
     def __init__(self):
         self.description = 'Downloader'
         self.keyword = 'url'
         self.save_path = '.'
-        self.log_path = 'log.txt'
 
     def parse(self):
         parser = argparse.ArgumentParser(description=self.description)
@@ -28,15 +25,15 @@ class Downloader():
 
     def download(self, img_url, filename):
         if os.path.exists(filename):
-            log('{} already exists and ignore {}'.format(filename, img_url), self.log_path)
-            return 1
+            print('File exists ({}). Skip {}'.format(filename, img_url))
+            return False
         os.makedirs(os.path.dirname(filename), exist_ok=True)
-        log('Download {} as {}'.format(img_url, filename), self.log_path)
+        print('Downloading {} as {}'.format(img_url, filename))
         res = requests.get(img_url, stream=True, timeout=10, verify=False)
         with open(filename, 'wb') as f:
             shutil.copyfileobj(res.raw, f)
         del res
-        return 0
+        return True
     
     def run(self):
         args = self.parse()

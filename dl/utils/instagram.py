@@ -1,61 +1,35 @@
+import re
+import json
+import time
+from bs4 import BeautifulSoup
+from .helpers import request_get
+    
 query_hash = '42323d64886122307be10013ad2dcc44'  # query shorcode pages
 # query_hash = '9ca88e465c3f866a76f7adee3871bdd8'  # query `{"data":{"viewer":null,"user":null},"status":"ok"}`
 userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1 Safari/605.1.15'
 
-def getSharedData(username):
-    import requests
-    import re
-    import json
-    import time
-    from bs4 import BeautifulSoup
+def parse_share_data(text):
+    soup = BeautifulSoup(text, 'html.parser')
+    for script in soup.find_all('script'):
+        p = re.compile('window._sharedData = (.*?);$')  # $ specifies the end of the string
+        m = p.match(script.string)
+        if m is not None:
+            break
+    shared_data = json.loads(m.groups()[0], encoding='utf-8')
+    return shared_data
+
+def get_shared_data(username):
     headers = {
         'User-Agent': userAgent
     }
-    
-    success = False
-    while not success:
-        try:
-            content = res = None
-            # print('Get', 'https://www.instagram.com/' + username, 'with',  headers)
-            res = requests.get('https://www.instagram.com/' + username, headers=headers, verify=False)
-            # print(res)
-            if res.status_code == 404:
-                with open('404.txt', 'w', encoding='utf-8') as f:
-                    f.write(username + '\n')
-                return None
-            while res.status_code != 200:
-                print('Got response', res.status_code)
-                print('Sleep for 1 hour...')
-                time.sleep(1 * 60 * 60)
-                res = requests.get('https://www.instagram.com/' + username, headers=headers, verify=False)
-
-            content = res.text
-            soup = BeautifulSoup(content, 'html.parser')
-            for script in soup.find_all('script'):
-                p = re.compile('window._sharedData = (.*?);$')  # $ specifies the end of the string
-                m = p.match(script.string)
-                if m is not None:
-                    break
-            sharedData = json.loads(m.groups()[0])
-            success = True
-        except Exception as e:
-            with open('latest', 'w', encoding='utf-8') as f:
-                f.write('====>' + username + '\n')
-                if res is None:
-                    print('res is None')
-                    f.write('res is None\n')
-                elif content is None:
-                    print('Status code:', res.status_code)
-                    f.write('Status code: ' + res.status_code + '\n')
-                else:
-                    with open('error', 'w', encoding='utf-8') as f:
-                        f.write(content)
-                    print(e)
-                    print('Status code:', res.status_code)
-                    # print('content:', content)
-            print('Sleep for 1 hour...')
-            time.sleep(1 * 60 * 60)
-    return sharedData
+    url = 'https://www.instagram.com/' + username
+    shared_data = request_get(
+        url, 
+        fn=parse_share_data, 
+        headers=headers, 
+        verify=False
+    )
+    return shared_data
 
 def get_x_instagram_gis(rhx_gis, url):
     import hashlib
@@ -64,14 +38,14 @@ def get_x_instagram_gis(rhx_gis, url):
     m.update(vals.encode())
     return m.hexdigest()
 
-def getFirstPage(username):
-    sharedData = getSharedData(username)
-    if sharedData is None:
+def get_first_page(username):
+    shared_data = get_shared_data(username)
+    if shared_data is None:
         return None, None, None, None, None, None, None
-    csrf_token = sharedData['config']['csrf_token']
-    rhx_gis = sharedData['rhx_gis']
+    csrf_token = shared_data['config']['csrf_token']
+    rhx_gis = shared_data['rhx_gis']
 
-    user = sharedData['entry_data']['ProfilePage'][0]['graphql']['user']
+    user = shared_data['entry_data']['ProfilePage'][0]['graphql']['user']
     is_private = user['is_private']
     user_id = user['id']
     profile_pic_url = user['profile_pic_url']
@@ -96,14 +70,9 @@ def getFirstPage(username):
 
     return tasks, end_cursor, has_next_page, len(edges), user_id, rhx_gis, csrf_token
 
-def getFollowingPage(query_hash, user_id, after, rhx_gis, csrf_token):
-    import requests
-    import json
-    import time
+def get_following_page(query_hash, user_id, after, rhx_gis, csrf_token):
     first = 12
-
     url = 'https://www.instagram.com/graphql/query/?query_hash={}&variables={{"id":"{}","first":{},"after":"{}"}}'.format(query_hash, user_id, first, after)
-
     headers = {
         'User-Agent': userAgent, 
         'X-Instagram-GIS': get_x_instagram_gis(rhx_gis, url)
@@ -111,24 +80,12 @@ def getFollowingPage(query_hash, user_id, after, rhx_gis, csrf_token):
     cookies = {
         'csrf_token': csrf_token
     }
-    success = False
-    while not success:
-        res = None
-        try:
-            res = requests.get(url, headers=headers, cookies=cookies, verify=False)
-            edge_owner_to_timeline_media = json.loads(res.text)['data']['user']['edge_owner_to_timeline_media']
-            success = True
-        except Exception as e:
-            with open('latest', 'w', encoding='utf-8') as f:
-                f.write(url)
-            print(e)
-            with open('error', 'w', encoding='utf-8') as f:
-                if res is None:
-                    f.write('res is None...')
-                else:
-                    f.write(res.text)
-            print('Sleep for 1 hour...')
-            time.sleep(1 * 60 * 60)
+    edge_owner_to_timeline_media = request_get(
+        url, 
+        fn=lambda text: json.loads(text, encoding='utf-8')['data']['user']['edge_owner_to_timeline_media'], 
+        headers=headers, cookies=cookies, verify=False
+    )
+    
     count = edge_owner_to_timeline_media['count']
     end_cursor = edge_owner_to_timeline_media['page_info']['end_cursor']
     has_next_page = edge_owner_to_timeline_media['page_info']['has_next_page']
@@ -160,9 +117,6 @@ def parse_node(node, name=''):
     else:
         name += '.' + node_name(node)
 
-    # import json
-    # with open('tmp', 'w') as f:
-    #     f.write(json.dumps(node))
     # print(node.keys())
     # print(node['__typename'])
     # print(node['display_url'])
@@ -193,25 +147,20 @@ def parse_node(node, name=''):
 
 # Go into the page for a certain post and get the node information
 def retrieve_node_from_shortcode(shortcode):
-    import requests
-    import json
-    import time
+    def _fn(text):
+        try:
+            data = json.loads(text, encoding='utf-8')['graphql']['shortcode_media']
+        except Exception as e:
+            data = parse_share_data(text)['entry_data']['PostPage'][0]['graphql']['shortcode_media']
+        return data
     url = 'https://www.instagram.com/p/{}/?__a=1'.format(shortcode)
-    # print(url)
     headers = {
         'User-Agent': userAgent
     }
-    success = False
-    while not success:
-        try:
-            res = requests.get(url, headers=headers, verify=False)
-            node = json.loads(res.text)['graphql']['shortcode_media']
-            success = True
-        except Exception as e:
-            with open('latest', 'w', encoding='utf-8') as f:
-                f.write(url)
-            print(url)
-            print(e)
-            print('Sleep for 1 hour...')
-            time.sleep(1 * 60 * 60)
+    node = request_get(
+        url, 
+        fn=_fn, 
+        headers=headers, 
+        verify=False
+    )
     return node

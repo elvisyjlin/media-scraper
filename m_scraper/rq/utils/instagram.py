@@ -2,7 +2,7 @@ import re
 import json
 import time
 from bs4 import BeautifulSoup
-from .helpers import request_get
+from .helpers import requests_get
     
 query_hash = '42323d64886122307be10013ad2dcc44'  # query shorcode pages
 # query_hash = '9ca88e465c3f866a76f7adee3871bdd8'  # query `{"data":{"viewer":null,"user":null},"status":"ok"}`
@@ -23,7 +23,7 @@ def get_shared_data(username):
         'User-Agent': userAgent
     }
     url = 'https://www.instagram.com/' + username
-    shared_data = request_get(
+    shared_data = requests_get(
         url, 
         fn=parse_share_data, 
         headers=headers, 
@@ -80,7 +80,7 @@ def get_following_page(query_hash, user_id, after, rhx_gis, csrf_token):
     cookies = {
         'csrf_token': csrf_token
     }
-    edge_owner_to_timeline_media = request_get(
+    edge_owner_to_timeline_media = requests_get(
         url, 
         fn=lambda text: json.loads(text, encoding='utf-8')['data']['user']['edge_owner_to_timeline_media'], 
         headers=headers, cookies=cookies, verify=False
@@ -157,7 +157,7 @@ def retrieve_node_from_shortcode(shortcode):
     headers = {
         'User-Agent': userAgent
     }
-    node = request_get(
+    node = requests_get(
         url, 
         fn=_fn, 
         headers=headers, 

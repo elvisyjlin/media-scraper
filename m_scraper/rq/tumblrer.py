@@ -1,9 +1,8 @@
-import requests
 import json
 import time
 import os
-from downloader import Downloader
-from utils.helpers import log
+from .downloader import Downloader
+from .utils.helpers import requests_get
 
 # VAR = {
 #     'save_path': '.', 
@@ -11,12 +10,11 @@ from utils.helpers import log
 # }
     
 class Tumblrer(Downloader):
-    def __init__(self, target='photo'):
+    def __init__(self, target='media'):
         super(Tumblrer).__init__()
         self.description = 'Tumblrer'
         self.keyword = 'sitename'
         self.save_path = './download_tumblr'
-        self.log_path = 'log_tumblr.txt'
         self.api = {
             'base': 'https://www.tumblr.com', 
             'v1': {
@@ -30,12 +28,11 @@ class Tumblrer(Downloader):
             self.crawl = self.crawl_article
 
     def get(self, sitename, start=0, num=50):
-        url = sitename + self.api['v1']['read']
+        url = 'https://' + sitename + self.api['v1']['read']
         params = {'start': start, 'num': num}
-        log('Get {} with {}'.format(url, params))
-        res = requests.get(url=url, params=params, verify=False)
-        content = json.loads(res.text.replace('var tumblr_api_read = ', '')[:-2])
-        del res
+        print('Get {} with {}'.format(url, params))
+        text = requests_get(url=url, params=params, verify=False)
+        content = json.loads(text.replace('var tumblr_api_read = ', '')[:-2])
         return content
     
     def crawl_media(self, sitename, early_stop=False, start=0, num=50):

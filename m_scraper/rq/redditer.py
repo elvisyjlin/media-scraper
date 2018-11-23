@@ -2,33 +2,20 @@ import requests
 import os
 import time
 import json
-from downloader import Downloader
-from utils.helpers import log, get_imgur, get_gfycat
+from .downloader import Downloader
+from .utils.helpers import get_imgur, get_gfycat, requests_get
 
 class Redditer(Downloader):
     def __init__(self):
-        super(Tumblrer).__init__()
+        super(Redditer).__init__()
         self.description = 'Redditer'
         self.keyword = 'subreddit'
         self.save_path = './download_reddit'
-        self.log_path = 'log_reddit.txt'
         self.api = {
             'base': 'https://www.reddit.com', 
             'posts': 'https://www.reddit.com/r/{}.json?after={}', 
             'search': 'https://www.reddit.com/subreddits/search.json?q={}&include_over_18=on'
         }
-
-    def download(self, img_url, filename):
-        if os.path.exists(filename):
-            log('{} already exists and ignore {}'.format(filename, img_url), 'log_reddit.txt')
-            return 1
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        log('Download {} as {}'.format(img_url, filename), 'log_reddit.txt')
-        res = requests.get(img_url, stream=True, timeout=10, verify=False)
-        with open(filename, 'wb') as f:
-            shutil.copyfileobj(res.raw, f)
-        del res
-        return 0
 
     def safe_download(self, subreddit, name, img_url):
         filename = os.path.join(self.save_path, subreddit, name + '.' + os.path.basename(img_url).split('?')[0])
@@ -60,8 +47,8 @@ class Redditer(Downloader):
         done = False
 
         while not done:
-            res = requests.get(API['posts'].format(subreddit, after), headers=headers)
-            red = json.loads(res.text)
+            text = requests_get(self.api['posts'].format(subreddit, after), headers=headers)
+            red = json.loads(text)
             print(len(red['data']['children']))
 
             for child in red['data']['children']:
@@ -76,7 +63,7 @@ class Redditer(Downloader):
                         for vid_url in get_gfycat(img_url):
                             self.safe_download(subreddit, name, vid_url)
                     else:
-                        log('No media in [{}]. Skip it.'.format(img_url))
+                        print('No media in [{}]. Skip it.'.format(img_url))
                         continue
                 else:
                     self.safe_download(subreddit, name, img_url)

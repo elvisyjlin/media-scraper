@@ -7,18 +7,19 @@ import time
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+
 class Downloader():
     def __init__(self):
         self.description = 'Downloader'
         self.keyword = 'url'
         self.save_path = '.'
 
-    def parse(self):
+    def parse(self, args=None):
         parser = argparse.ArgumentParser(description=self.description)
         parser.add_argument('keywords', nargs='*', help=self.keyword+'s to crawl (or files containing '+self.keyword+'s)')
         parser.add_argument('-s', '--save_path', type=str, help='path to save')
         parser.add_argument('-e', '--early_stop', action='store_true')
-        return parser.parse_args()
+        return parser.parse_args(args=args)
     
     def get(self, url):
         pass
@@ -35,8 +36,8 @@ class Downloader():
         del res
         return True
     
-    def run(self):
-        args = self.parse()
+    def run(self, args=None):
+        args = self.parse(args)
         print(args)
 
         if args.save_path is not None:

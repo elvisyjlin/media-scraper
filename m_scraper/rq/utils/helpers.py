@@ -7,7 +7,7 @@ def log(msg, file='log.txt'):
     with open(file, 'a') as f:
         f.write(msg + '\n')
 
-def request_get(url, fn=None, **kwarg):
+def requests_get(url, fn=None, **kwarg):
     res = None
     data = None
     success = False

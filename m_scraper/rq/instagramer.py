@@ -1,7 +1,7 @@
 import time
 import os
-from downloader import Downloader
-from utils.instagram import *
+from .downloader import Downloader
+from .utils.instagram import *
 
 class Instagramer(Downloader):
     def __init__(self):

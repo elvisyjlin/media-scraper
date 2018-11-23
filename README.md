@@ -21,6 +21,20 @@ Currently there are **Instagram** scraper and **Twitter** scraper,
 which crawl all posts of a given user and download media in a proper way for each SNS. 
 
 
+## Updates
+
+Current, `media-scraper` is merged to contain two methods of scraping: _by request_ and _by browser_.
+
+
+### Usage
+
+```bash
+python3 m-scraper.py rq instagram [USERNAME1 USERNAME2 ...] [-e] [-s SAVE_PATH]
+python3 m-scraper.py rq tumblr [SITE1 SITE2 ...] [-e] [-s SAVE_PATH]
+python3 m-scraper.py rq reddit [SUBREDDIT1 SUBREDDIT2 ...] [-e] [-s SAVE_PATH]
+```
+
+
 ## Installation
 
 Clone the `media-scraper` git repository.

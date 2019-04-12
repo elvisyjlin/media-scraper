@@ -5,7 +5,7 @@
 # Licensed under the MIT License - https://opensource.org/licenses/MIT
 
 import platform
-from os import makedirs
+from os import chmod, makedirs, stat
 from os.path import dirname, exists, join
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -124,6 +124,8 @@ def get_source(driverType, path='.'):
                 with open(source, "wb") as f:
                     # f.write(data)
                     shutil.copyfileobj(res.raw, f)
+                st = stat(source)
+                chmod(source, st.st_mode | 0o111)  # make it executable
                 print('Web driver "%s" has been downloaded successfully.' % source)
     print(source)
     return source

@@ -5,8 +5,9 @@ from .utils.instagram import *
 
 class Instagramer(Downloader):
     def __init__(self):
-        super(Instagramer).__init__()
+        super(Instagramer, self).__init__()
         self.description = 'Instagramer'
+        self.identifier = 'instagram'
         self.keyword = 'username'
         self.save_path = './download_instagram'
         self.api = {

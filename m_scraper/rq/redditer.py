@@ -7,8 +7,9 @@ from .utils.helpers import get_imgur, get_gfycat, requests_get
 
 class Redditer(Downloader):
     def __init__(self):
-        super(Redditer).__init__()
+        super(Redditer, self).__init__()
         self.description = 'Redditer'
+        self.identifier = 'reddit'
         self.keyword = 'subreddit'
         self.save_path = './download_reddit'
         self.api = {

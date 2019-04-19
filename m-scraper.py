@@ -17,8 +17,11 @@ if __name__ == '__main__':
     elif module == 'rq' and site == 'reddit':
         import m_scraper.rq
         scraper = m_scraper.rq.Redditer()
+    elif module == 'rq' and site == 'pixiv':
+        import m_scraper.rq
+        scraper = m_scraper.rq.Pixiver()
     else:
-        print('Currently `m-scraper` does not support', module, site)
+        print('`m-scraper` does not support', module, site)
         sys.exit(1)
         
     scraper.run(sys.argv[3:])

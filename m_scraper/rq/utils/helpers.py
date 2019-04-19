@@ -1,3 +1,4 @@
+import json
 import requests
 import os
 import time
@@ -73,3 +74,7 @@ def get_gfycat(url):
     
     return [GFYCAT_MP4.format(name), 
             GFYCAT_WEBM.format(name)]
+
+def save_json(data, filename):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    json.dump(data, open(filename, 'w', encoding='utf-8'))

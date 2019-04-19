@@ -29,10 +29,20 @@ Current, `media-scraper` is merged to contain two methods of scraping: _by reque
 ### Usage
 
 ```bash
-python3 m-scraper.py rq instagram [USERNAME1 USERNAME2 ...] [-e] [-s SAVE_PATH]
-python3 m-scraper.py rq tumblr [SITE1 SITE2 ...] [-e] [-s SAVE_PATH]
-python3 m-scraper.py rq reddit [SUBREDDIT1 SUBREDDIT2 ...] [-e] [-s SAVE_PATH]
+python3 m-scraper.py rq instagram [USERNAME1 USERNAME2 ...] [-e] [-s SAVE_PATH] [-c CRED_FILE]
+python3 m-scraper.py rq tumblr [SITE1 SITE2 ...] [-e] [-s SAVE_PATH] [-c CRED_FILE]
+python3 m-scraper.py rq reddit [SUBREDDIT1 SUBREDDIT2 ...] [-e] [-s SAVE_PATH] [-c CRED_FILE]
+python3 m-scraper.py rq pixiv [USERID1 USERID2 ...] [-e] [-s SAVE_PATH] [-c CRED_FILE]
 ```
+
+If you'd like to download with your own credentials, i.e. logging in your account, please put your username and password in `credentials.json` and run `m-scraper.py` with `-c credentials.json`.
+
+```bash
+mv ./credentials.json.example ./credentials.json
+vim ./credentials.json
+```
+
+Note that pixiv requires a user login to view all illustrations and mangas. If you scrape pixiv without logging in, you'll get only some of them.
 
 
 ## Installation

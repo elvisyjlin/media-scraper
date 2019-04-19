@@ -11,8 +11,9 @@ from .utils.helpers import requests_get
     
 class Tumblrer(Downloader):
     def __init__(self, target='media'):
-        super(Tumblrer).__init__()
+        super(Tumblrer, self).__init__()
         self.description = 'Tumblrer'
+        self.identifier = 'tumblr'
         self.keyword = 'sitename'
         self.save_path = './download_tumblr'
         self.api = {

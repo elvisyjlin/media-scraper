@@ -20,6 +20,9 @@ if __name__ == '__main__':
     elif module == 'rq' and site == 'pixiv':
         import m_scraper.rq
         scraper = m_scraper.rq.Pixiver()
+    elif module == 'rq' and site == 'tiktok':
+        import m_scraper.rq
+        scraper = m_scraper.rq.TikToker()
     else:
         print('`m-scraper` does not support', module, site)
         sys.exit(1)

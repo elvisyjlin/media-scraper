@@ -33,6 +33,7 @@ python3 m-scraper.py rq instagram [USERNAME1 USERNAME2 ...] [-e] [-s SAVE_PATH] 
 python3 m-scraper.py rq tumblr [SITE1 SITE2 ...] [-e] [-s SAVE_PATH] [-c CRED_FILE]
 python3 m-scraper.py rq reddit [SUBREDDIT1 SUBREDDIT2 ...] [-e] [-s SAVE_PATH] [-c CRED_FILE]
 python3 m-scraper.py rq pixiv [USERID1 USERID2 ...] [-e] [-s SAVE_PATH] [-c CRED_FILE]
+python3 m-scraper.py rq tiktok [USERID1 USERID2 ...] [-e] [-s SAVE_PATH] [-c CRED_FILE]
 ```
 
 If you'd like to download with your own credentials, i.e. logging in your account, please put your username and password in `credentials.json` and run `m-scraper.py` with `-c credentials.json`.
@@ -43,6 +44,8 @@ vim ./credentials.json
 ```
 
 Note that pixiv requires a user login to view all illustrations and mangas. If you scrape pixiv without logging in, you'll get only some of them.
+
+For scraping TikTok videos, you'll need to get the user id first. Go to the user page in your TikTok App, share it via link, paste it in a browser, and you'll see the user id in the url bar. E.g. user id of _TikTok_ is 107955. However, `m-scraper` here fetch video list via TikTok shared content, it contains most of the videos but not all of them. I'll dig into the mobile App API in the future.
 
 
 ## Installation

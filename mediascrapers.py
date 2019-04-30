@@ -102,8 +102,9 @@ class Scraper(metaclass=ABCMeta):
         if self._mode != 'silent':
             print('Downloading...')
         for url, folder, rename in tqdm(tasks):
+            target_path = path
             if folder is not None:
-                target_path = os.path.join(path, folder)
+                target_path = os.path.join(target_path, folder)
             download(url, path=target_path, rename=rename, replace=force)
 
     @abstractmethod

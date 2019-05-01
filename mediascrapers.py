@@ -134,6 +134,7 @@ class MediaScraper(Scraper):
 
         media_urls = [] 
         soup = bs(source, 'html.parser')
+        title = soup.find('title').text
         for link in soup.find_all('a', href=True):
             if is_media(link['href']):
                 media_urls.append(link['href'])
@@ -149,7 +150,7 @@ class MediaScraper(Scraper):
         if self._debug:
             print(media_urls)
 
-        tasks = [(complete_url(media_url, self._driver.current_url), None, None) for media_url in media_urls]
+        tasks = [(complete_url(media_url, self._driver.current_url), title, None) for media_url in media_urls]
 
         if self._debug:
             print(tasks)
@@ -351,6 +352,10 @@ class InstagramScraper(Scraper):
 
     def login(self, credentials_file):
         credentials = self.load_credentials(credentials_file)
+        return
+        
+        if credentials['username'] == '' or credentials['password'] == '':
+            print('Either username or password is empty. Abort login.')
 
         if self._mode != 'silent':
             print('Logging in as "{}"...'.format(credentials['username']))
@@ -411,7 +416,6 @@ class TwitterScraper(Scraper):
                 for photo in photos:
                     url = photo['data-image-url']
                     tasks.append((url+':large', username, get_basename(get_filename(url))))
-                    
         for div in soup.find_all('div', { "class" : "AdaptiveMedia-photoContainer" }):
             url = div['data-image-url']
             tasks.append((url+':large', username, get_basename(get_filename(url))))
@@ -423,6 +427,10 @@ class TwitterScraper(Scraper):
 
     def login(self, credentials_file):
         credentials = self.load_credentials(credentials_file)
+        
+        if credentials['username'] == '' or credentials['password'] == '':
+            print('Either username or password is empty. Abort login.')
+            return
 
         if self._mode != 'silent':
             print('Logging in as "{}"...'.format(credentials['username']))
@@ -484,6 +492,10 @@ class FacebookScraper(Scraper):
 
     def login(self, credentials_file):
         credentials = self.load_credentials(credentials_file)
+        
+        if credentials['email'] == '' or credentials['password'] == '':
+            print('Either email or password is empty. Abort login.')
+            return
 
         if self._mode != 'silent':
             print('Logging in as "{}"...'.format(credentials['email']))
@@ -561,6 +573,10 @@ class pixivScraper(Scraper):
 
     def login(self, credentials_file):
         credentials = self.load_credentials(credentials_file)
+        
+        if credentials['username'] == '' or credentials['password'] == '':
+            print('Either username or password is empty. Abort login.')
+            return
 
         if self._mode != 'silent':
             print('Logging in as "{}"...'.format(credentials['username']))

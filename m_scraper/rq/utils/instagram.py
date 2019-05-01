@@ -2,7 +2,7 @@ import re
 import json
 import time
 from bs4 import BeautifulSoup
-from .helpers import requests_get
+from .helpers import requests_get, url_basename
     
 query_hash = '42323d64886122307be10013ad2dcc44'  # query shorcode pages
 # query_hash = '9ca88e465c3f866a76f7adee3871bdd8'  # query `{"data":{"viewer":null,"user":null},"status":"ok"}`
@@ -125,8 +125,9 @@ def parse_node(node, name=''):
     display_resources = node['display_resources']
     # find the highest resolution image
     url = largest_image_url(display_resources)
+    url_filename = url_basename(url)
     # download(url, path=save_path, rename=name, replace=False)
-    tasks.append((url, name + '.' + url.rsplit('.', 1)[1]))
+    tasks.append((url, name + '.' + url_filename.rsplit('.', 1)[1]))
 
     typename = node['__typename']
     if typename == 'GraphImage':
@@ -138,8 +139,9 @@ def parse_node(node, name=''):
             tasks += parse_node(edge['node'], name)
     elif typename == 'GraphVideo':
         url = node['video_url']
+        url_filename = url_basename(url)
         # download(url, path=save_path, rename=name, replace=False)
-        tasks.append((url, name + '.' + url.rsplit('.', 1)[1]))
+        tasks.append((url, name + '.' + url_filename.rsplit('.', 1)[1]))
     else:
         print('Error: unsupported typename "{}".'.format(typename))
 

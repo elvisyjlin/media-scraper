@@ -78,3 +78,9 @@ def get_gfycat(url):
 def save_json(data, filename):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     json.dump(data, open(filename, 'w', encoding='utf-8'))
+
+def url_basename(url):
+    filename = os.path.basename(url)
+    if '?' in filename:
+        filename = filename.split('?', 1)[0]
+    return filename

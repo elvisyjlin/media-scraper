@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2018 Elvis Yu-Jing Lin <elvisyjlin@gmail.com>
+# Licensed under the MIT License - https://opensource.org/licenses/MIT
+
 import os
 from .downloader import Downloader
 from .utils.helpers import save_json
@@ -27,6 +33,9 @@ class TikToker(Downloader):
             res = self.sess.get(data_url, headers=headers)
             if res.status_code == 200:
                 data = res.json()
+                if 'body' not in data:
+                    print(data)
+                    raise Exception('body not found')
                 itemListData = data['body']['itemListData']
                 max_cursor = data['body']['maxCursor']
                 done = not data['body']['hasMore']

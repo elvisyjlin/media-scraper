@@ -121,29 +121,15 @@ just rename `credentials.json.example` to `credentials.json` and fill in your us
 ## To Import
 
 It is easy to import `media-scraper` into your scripts and make use of it.
+Please refer to the [example code](https://github.com/elvisyjlin/media-scraper/tree/master/mediascraper) for more details.
 
 
 ### Media Scraper
 
-
-#### General
-
-```python
-import mediascraper
-scraper = mediascrapers.MediaScraper()
-scraper.connect(URL)
-scraper.scrape(path=SAVE_PATH)
 ```
-
-
-#### Social Network Services
-
-```python
-import mediascraper
-scraper = mediascrapers.InstagramScraper()
-# scraper = mediascrapers.TwitterScraper()
-scraper.username(USERNAME)
-scraper.scrape(path=SAVE_PATH)
+python3 -m mediascraper.general [URL1 URL2 ...]
+python3 -m mediascraper.instagram [USERNAME1 USERNAME2 ...]
+python3 -m mediascraper.twitter [USERNAME1 USERNAME2 ...]
 ```
 
 

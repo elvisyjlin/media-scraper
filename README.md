@@ -157,7 +157,8 @@ TwitterScraper | `username(USERNAME)`
 ### Instagram
 
 Instagram changed API 3 times this year (2018), so the query API in `media-scraper` is out-of-date. 
-Please see [`instagramer.py`](https://github.com/elvisyjlin/media-scraper/blob/master/tumblrer/instagramer.py), which works well for downloading all media form Instagram.
+Please see [`instagramer.py`](https://github.com/elvisyjlin/media-scraper/blob/master/m_scraper/rq/instagramer.py), which works well for downloading all media form Instagram.
+The instruction is [here](https://github.com/elvisyjlin/media-scraper#usage).
 
 
 ### Twitter [Solved]

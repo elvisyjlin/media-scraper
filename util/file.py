@@ -13,8 +13,10 @@ def get_extension(filename):
     return filename.rsplit('.', 1)[1]
 
 def rename_file(filename, name):
+    print(filename, name)
     return '{}.{}'.format(name, get_extension(filename))
 
 def safe_makedirs(path):
+    # print(f'PATH: {path}')
     if not os.path.exists(path):
         os.makedirs(path)

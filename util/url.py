@@ -11,6 +11,7 @@ from util.file import rename_file, safe_makedirs
 from util.twitter import twitter_m3u8
 
 def get_filename(url):
+    # print(url)
     return url.rsplit('/')[-1].split(':')[0]
 
 def complete_url(url, current_url):
@@ -43,7 +44,7 @@ def download(url, path='.', rename=None, replace=True):
 
     if '.m3u8' in url:
         twitter_m3u8(url, file.replace('.m3u8', '.ts'))
-    else:    
+    else:
         r = requests.get(url, stream=True)
         if r.status_code == 200:
             safe_makedirs(path)

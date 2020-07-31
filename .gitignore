@@ -12,3 +12,5 @@ example_sites.txt
 *.spec
 error.txt
 debug.txt
+.DS_Store
+nbs/

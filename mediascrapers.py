@@ -42,7 +42,7 @@ class Scraper(metaclass=ABCMeta):
             self._driver = seleniumdriver.get('Chrome')
         else:
             raise Exception('Driver not found "{}".'.format(driver))
-            
+
         # self._driver.set_window_size(1920, 1080)
 
     def _connect(self, url):
@@ -105,6 +105,7 @@ class Scraper(metaclass=ABCMeta):
             target_path = path
             if folder is not None:
                 target_path = os.path.join(target_path, folder)
+                print(target_path)
             download(url, path=target_path, rename=rename, replace=force)
 
     @abstractmethod
@@ -132,7 +133,7 @@ class MediaScraper(Scraper):
 
         # Parse links, images, and videos successively by BeautifulSoup parser.
 
-        media_urls = [] 
+        media_urls = []
         soup = bs(source, 'html.parser')
         title = soup.find('title').text
         for link in soup.find_all('a', href=True):
@@ -150,7 +151,9 @@ class MediaScraper(Scraper):
         if self._debug:
             print(media_urls)
 
-        tasks = [(complete_url(media_url, self._driver.current_url), title, None) for media_url in media_urls]
+        # tasks = [(complete_url(media_url, self._driver.current_url), title, None) for media_url in media_urls]
+        tasks = [(complete_url(media_url, self._driver.current_url),
+                  self._driver.current_url.replace('/','_'), None) for media_url in media_urls]
 
         if self._debug:
             print(tasks)
@@ -184,17 +187,17 @@ class MediaScraper(Scraper):
 
 class InstagramScraper(Scraper):
 
-    # NOTES: 
-    # 1. Naming rule of Instagram username: 
-    #    (1) letters    (a-zA-Z) 
-    #    (2) digits     (0-9) 
-    #    (3) underline  (_) 
-    #    (4) dot        (.) 
-    # 2. Shortcode: 
-    #    not necessarily is a string of 11 characters 
+    # NOTES:
+    # 1. Naming rule of Instagram username:
+    #    (1) letters    (a-zA-Z)
+    #    (2) digits     (0-9)
+    #    (3) underline  (_)
+    #    (4) dot        (.)
+    # 2. Shortcode:
+    #    not necessarily is a string of 11 characters
     #    maybe a string of 38 (on private account)
     # 3. In a page, there are at most 30 rows of posts.
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._name = 'instagram'
@@ -204,7 +207,7 @@ class InstagramScraper(Scraper):
         self.json_data_url_with_max_id = 'https://www.instagram.com/{}/?__a=1&max_id={}'
         self.new_json_data_url = 'https://www.instagram.com/graphql/query/?query_hash={}&variables={{"id":"{}","first":{},"after":"{}"}}'
         self.query_parameters = {
-            'query_hash': '472f257a40c653c64c666ce877d59d2b', 
+            'query_hash': '472f257a40c653c64c666ce877d59d2b',
             'first': 12
         }
         self.post_regex = '\/p\/[^\/]+\/'
@@ -353,7 +356,7 @@ class InstagramScraper(Scraper):
     def login(self, credentials_file):
         credentials = self.load_credentials(credentials_file)
         return
-        
+
         if credentials['username'] == '' or credentials['password'] == '':
             print('Either username or password is empty. Abort login.')
 
@@ -373,7 +376,7 @@ class InstagramScraper(Scraper):
 
 
 class TwitterScraper(Scraper):
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._name = 'twitter'
@@ -427,7 +430,7 @@ class TwitterScraper(Scraper):
 
     def login(self, credentials_file):
         credentials = self.load_credentials(credentials_file)
-        
+
         if credentials['username'] == '' or credentials['password'] == '':
             print('Either username or password is empty. Abort login.')
             return
@@ -454,7 +457,7 @@ class TwitterScraper(Scraper):
 
 
 class FacebookScraper(Scraper):
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._name = 'facebook'
@@ -492,7 +495,7 @@ class FacebookScraper(Scraper):
 
     def login(self, credentials_file):
         credentials = self.load_credentials(credentials_file)
-        
+
         if credentials['email'] == '' or credentials['password'] == '':
             print('Either email or password is empty. Abort login.')
             return
@@ -514,7 +517,7 @@ class FacebookScraper(Scraper):
 
 
 class pixivScraper(Scraper):
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._name = 'pixiv'
@@ -573,7 +576,7 @@ class pixivScraper(Scraper):
 
     def login(self, credentials_file):
         credentials = self.load_credentials(credentials_file)
-        
+
         if credentials['username'] == '' or credentials['password'] == '':
             print('Either username or password is empty. Abort login.')
             return

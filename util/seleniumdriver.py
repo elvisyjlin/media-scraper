@@ -12,18 +12,18 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 SRC_URL_DICT = {
-    'webdriver/phantomjsdriver_2.1.1_win32/phantomjs.exe': 'https://www.dropbox.com/s/y1sc5ujzhdqb9f4/phantomjs.exe?dl=1', 
-    'webdriver/phantomjsdriver_2.1.1_mac64/phantomjs': 'https://www.dropbox.com/s/b6hmitsz1u4wc5w/phantomjs?dl=1', 
-    'webdriver/phantomjsdriver_2.1.1_linux32/phantomjs': 'https://www.dropbox.com/s/xxka7isoskg53tr/phantomjs?dl=1', 
-    'webdriver/phantomjsdriver_2.1.1_linux64/phantomjs': 'https://www.dropbox.com/s/dhuw71d9l5umk5m/phantomjs?dl=1', 
-    'webdriver/chromedriver_2.39_win32/chromedriver.exe': 'https://www.dropbox.com/s/k8dibiirz35zjf0/chromedriver.exe?dl=1', 
-    'webdriver/chromedriver_2.39_mac64/chromedriver': 'https://www.dropbox.com/s/jatcb8n8lqijat9/chromedriver?dl=1', 
-    'webdriver/chromedriver_2.39_linux64/chromedriver': 'https://www.dropbox.com/s/vgyik5zsngpkck4/chromedriver?dl=1', 
-    'webdriver/geckodriver_0.19.1_win32/geckodriver.exe': 'https://www.dropbox.com/s/s10tyhwc8z9nikg/geckodriver.exe?dl=1', 
-    'webdriver/geckodriver_0.19.1_win64/geckodriver.exe': 'https://www.dropbox.com/s/r9zt6l9c7cn1pc8/geckodriver.exe?dl=1', 
-    'webdriver/geckodriver_0.19.1_macos/geckodriver': 'https://www.dropbox.com/s/la2bfgdsdk2mrhj/geckodriver?dl=1', 
-    'webdriver/geckodriver_0.19.1_linux32/geckodriver': 'https://www.dropbox.com/s/8qjr5n1i9jhmkmb/geckodriver?dl=1', 
-    'webdriver/geckodriver_0.19.1_linux64/geckodriver': 'https://www.dropbox.com/s/b966sm5v98nmd5g/geckodriver?dl=1', 
+    'webdriver/phantomjsdriver_2.1.1_win32/phantomjs.exe': 'https://www.dropbox.com/s/y1sc5ujzhdqb9f4/phantomjs.exe?dl=1',
+    'webdriver/phantomjsdriver_2.1.1_mac64/phantomjs': 'https://www.dropbox.com/s/b6hmitsz1u4wc5w/phantomjs?dl=1',
+    'webdriver/phantomjsdriver_2.1.1_linux32/phantomjs': 'https://www.dropbox.com/s/xxka7isoskg53tr/phantomjs?dl=1',
+    'webdriver/phantomjsdriver_2.1.1_linux64/phantomjs': 'https://www.dropbox.com/s/dhuw71d9l5umk5m/phantomjs?dl=1',
+    'webdriver/chromedriver_2.39_win32/chromedriver.exe': 'https://www.dropbox.com/s/k8dibiirz35zjf0/chromedriver.exe?dl=1',
+    'webdriver/chromedriver_2.39_mac64/chromedriver': 'https://www.dropbox.com/s/jatcb8n8lqijat9/chromedriver?dl=1',
+    'webdriver/chromedriver_2.39_linux64/chromedriver': 'https://www.dropbox.com/s/vgyik5zsngpkck4/chromedriver?dl=1',
+    'webdriver/geckodriver_0.19.1_win32/geckodriver.exe': 'https://www.dropbox.com/s/s10tyhwc8z9nikg/geckodriver.exe?dl=1',
+    'webdriver/geckodriver_0.19.1_win64/geckodriver.exe': 'https://www.dropbox.com/s/r9zt6l9c7cn1pc8/geckodriver.exe?dl=1',
+    'webdriver/geckodriver_0.19.1_macos/geckodriver': 'https://www.dropbox.com/s/la2bfgdsdk2mrhj/geckodriver?dl=1',
+    'webdriver/geckodriver_0.19.1_linux32/geckodriver': 'https://www.dropbox.com/s/8qjr5n1i9jhmkmb/geckodriver?dl=1',
+    'webdriver/geckodriver_0.19.1_linux64/geckodriver': 'https://www.dropbox.com/s/b966sm5v98nmd5g/geckodriver?dl=1',
     'webdriver/geckodriver_0.19.1_arm7hf/geckodriver': 'https://www.dropbox.com/s/k8dibiirz35zjf0/chromedriver.exe?dl=1'
 }
 

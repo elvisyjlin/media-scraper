@@ -7,8 +7,8 @@
 import os
 import urllib
 import requests
-from util.file import rename_file, safe_makedirs
-from util.twitter import twitter_m3u8
+from cutil.file import rename_file, safe_makedirs
+from cutil.twitter import twitter_m3u8
 
 def get_filename(url):
     # print(url)
@@ -30,17 +30,21 @@ def complete_url(url, current_url):
             url = dir_url + '/' + url
     return url
 
-def download(url, path='.', rename=None, replace=True):
-    if rename is None:
-        filename = urllib.parse.unquote(get_filename(url))
-    else:
-        filename = rename_file(get_filename(url), rename)
+def download(url, path='.', rename=None, replace=True,num=1):
 
+    n=num
+    if('.jpg' in url or 'format=jpg' in url ):
+        filename=str(n)+'.jpg'
+    elif('.jpeg' in url or 'format=jpeg' in url ):
+        filename=str(n)+'.jpeg'
+    elif('.svg' in url or 'format=svg' in url ):
+        return 
+    elif('.png' in url or 'format=png' in url ):
+        filename=str(n)+'.png'
+    else:
+        filename=str(n)+'.jpeg'
     file = os.path.join(path, filename)
 
-    if not replace and os.path.exists(file):
-        print('The file {} exists. Skip it.'.format(file))
-        return
 
     if '.m3u8' in url:
         twitter_m3u8(url, file.replace('.m3u8', '.ts'))
@@ -72,6 +76,10 @@ def is_video(url):
     mimetype = get_mimetype(url)
     return None if mimetype is None else mimetype.split('/')[0] == 'video'
 
-def is_media(url):
+def is_media(url,strict=True):
     mimetype = get_mimetype(url)
+    if(strict==False):
+        if('format=jpg' in url or 'format=jpeg' in url or 'format=svg' in url or 'format=png' in url or'format=png' in url):
+            return True
     return False if mimetype is None else mimetype.split('/')[0] == 'image' or mimetype.split('/')[0] == 'video'
+    return True

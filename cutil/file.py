@@ -5,7 +5,9 @@
 # Licensed under the MIT License - https://opensource.org/licenses/MIT
 
 import os
-
+# class file:
+#     def __init__(self):
+#         continue
 def get_basename(filename):
     return filename.rsplit('.', 1)[0]
 

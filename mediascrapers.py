@@ -13,15 +13,17 @@ from abc import ABCMeta, abstractmethod
 from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from tqdm import tqdm
-from util import seleniumdriver
-from util.file import get_basename, get_extension, rename_file, safe_makedirs
-from util.instagram import parse_node
-from util.twitter import get_twitter_video_url
-from util.url import get_filename, complete_url, download, is_media
-
+# from application.app.util import seleniumdriver as seleniumdriver
+from cutil import seleniumdriver as seleniumdriver
+# from cutil import medi
+from cutil.file import get_basename, get_extension, rename_file, safe_makedirs
+from cutil.instagram import parse_node
+from cutil.twitter import get_twitter_video_url
+from cutil.url import get_filename, complete_url, download, is_media
+from selenium.webdriver.support.ui import WebDriverWait
 class Scraper(metaclass=ABCMeta):
 
-    def __init__(self, driver='phantomjs', scroll_pause=1.0, next_page_pause=1.0, mode='normal', debug=False):
+    def __init__(self, driver='chrome', scroll_pause=1.0, next_page_pause=1.0, mode='normal', debug=False):
         self._scroll_pause_time = scroll_pause
         self._next_page_pause_time = next_page_pause
         self._login_pause_time = 5.0
@@ -59,7 +61,7 @@ class Scraper(metaclass=ABCMeta):
     def save(self, file):
         with open(file, 'wb') as f:
             f.write(self.source().encode('utf-8'))
-        print('Saved web page to {}.'.format(file))
+        print('****Saved web page to {}.'.format(file))
 
     def load_credentials(self, credentials_file):
         assert os.path.exists(credentials_file), 'Error: Credentials file "{}" does not exist.'.format(credentials_file)
@@ -101,12 +103,14 @@ class Scraper(metaclass=ABCMeta):
     def download(self, tasks, path='.', force=False):
         if self._mode != 'silent':
             print('Downloading...')
-        for url, folder, rename in tqdm(tasks):
+        n=1
+        for url, folder, rename in tqdm(set(tasks)):
             target_path = path
             if folder is not None:
                 target_path = os.path.join(target_path, folder)
                 print(target_path)
-            download(url, path=target_path, rename=rename, replace=force)
+            download(url, path=target_path, rename=rename, replace=force, num=n)
+            n+=1
 
     @abstractmethod
     def login(self):
@@ -123,9 +127,11 @@ class MediaScraper(Scraper):
         # self.rel_url_regex = '/^[^\/]+\/[^\/].*$|^\/[^\/].*$/gmi'
 
     def scrape(self, url):
+        
         self._connect(url)
         self.scrollToBottom()
-
+#         WebDriverWait(self._driver, 5)
+        self._driver.implicitly_wait(5)
         if self._debug:
             self.save('test.html')
 
@@ -136,24 +142,30 @@ class MediaScraper(Scraper):
         media_urls = []
         soup = bs(source, 'html.parser')
         title = soup.find('title').text
-        for link in soup.find_all('a', href=True):
-            if is_media(link['href']):
-                media_urls.append(link['href'])
-            if is_media(link.text):
-                media_urls.append(link.text)
+        all_links=[]
+#         for link in soup.find_all('a', href=True):
+#             if is_media(link['href']):
+#                 media_urls.append(link['href'])
+#             if is_media(link.text):
+#                 media_urls.append(link.text)
+#             all_links.append(link['href'])
         for image in soup.find_all('img', src=True):
             if is_media(image['src']):
                 media_urls.append(image['src'])
-        for video in soup.find_all('video', src=True):
-            if is_media(video['src']):
-                media_urls.append(video['src'])
+            all_links.append(image['src'])
+
+#         for video in soup.find_all('video', src=True):
+#             if is_media(video['src']):
+#                 media_urls.append(video['src'])
+#         # print(all_links)
+
 
         if self._debug:
             print(media_urls)
 
         # tasks = [(complete_url(media_url, self._driver.current_url), title, None) for media_url in media_urls]
         tasks = [(complete_url(media_url, self._driver.current_url),
-                  self._driver.current_url.replace('/','_'), None) for media_url in media_urls]
+                  self._driver.current_url[self._driver.current_url.find('status')+7:], None) for media_url in media_urls]
 
         if self._debug:
             print(tasks)

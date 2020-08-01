@@ -76,9 +76,10 @@ def is_video(url):
     mimetype = get_mimetype(url)
     return None if mimetype is None else mimetype.split('/')[0] == 'video'
 
-def is_media(url):
+def is_media(url,strict=True):
     mimetype = get_mimetype(url)
-    if('format=jpg' in url or 'format=jpeg' in url or 'format=svg' in url or 'format=png' in url or 'format=png' in url):
-        return True
+    if(strict==False):
+        if('format=jpg' in url or 'format=jpeg' in url or 'format=svg' in url or 'format=png' in url or'format=png' in url):
+            return True
     return False if mimetype is None else mimetype.split('/')[0] == 'image' or mimetype.split('/')[0] == 'video'
     return True

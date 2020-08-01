@@ -15,10 +15,7 @@ from selenium import webdriver
 from tqdm import tqdm
 # from application.app.util import seleniumdriver as seleniumdriver
 from cutil import seleniumdriver as seleniumdriver
-# from cutil import medi
 from cutil.file import get_basename, get_extension, rename_file, safe_makedirs
-from cutil.instagram import parse_node
-from cutil.twitter import get_twitter_video_url
 from cutil.url import get_filename, complete_url, download, is_media
 from selenium.webdriver.support.ui import WebDriverWait
 class Scraper(metaclass=ABCMeta):
@@ -115,22 +112,16 @@ class Scraper(metaclass=ABCMeta):
     @abstractmethod
     def login(self):
         pass
-
-class MediaScraper(Scraper):
-
+    
+class TwitterImageScraper(Scraper):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._name = 'general'
-        # self.abs_url_regex = '([a-z0-9]*:|.{0})\/\/[^"\s]+'
-        # self.rel_url_regex = '\"[^\/]+\/[^\/].*$|^\/[^\/].*\"'
-        # self.abs_url_regex = '/^([a-z0-9]*:|.{0})\/\/.*$/gmi'
-        # self.rel_url_regex = '/^[^\/]+\/[^\/].*$|^\/[^\/].*$/gmi'
 
     def scrape(self, url):
         
         self._connect(url)
         self.scrollToBottom()
-#         WebDriverWait(self._driver, 5)
         self._driver.implicitly_wait(5)
         if self._debug:
             self.save('test.html')
@@ -143,21 +134,21 @@ class MediaScraper(Scraper):
         soup = bs(source, 'html.parser')
         title = soup.find('title').text
         all_links=[]
-#         for link in soup.find_all('a', href=True):
-#             if is_media(link['href']):
-#                 media_urls.append(link['href'])
-#             if is_media(link.text):
-#                 media_urls.append(link.text)
-#             all_links.append(link['href'])
+        for link in soup.find_all('a', href=True):
+            if is_media(link['href']):
+                media_urls.append(link['href'])
+            if is_media(link.text):
+                media_urls.append(link.text)
+            all_links.append(link['href'])
+            
         for image in soup.find_all('img', src=True):
-            if is_media(image['src']):
+            if is_media(image['src'],strict=False):
                 media_urls.append(image['src'])
             all_links.append(image['src'])
 
-#         for video in soup.find_all('video', src=True):
-#             if is_media(video['src']):
-#                 media_urls.append(video['src'])
-#         # print(all_links)
+        for video in soup.find_all('video', src=True):
+            if is_media(video['src']):
+                media_urls.append(video['src'])
 
 
         if self._debug:
@@ -166,6 +157,62 @@ class MediaScraper(Scraper):
         # tasks = [(complete_url(media_url, self._driver.current_url), title, None) for media_url in media_urls]
         tasks = [(complete_url(media_url, self._driver.current_url),
                   self._driver.current_url[self._driver.current_url.find('status')+7:], None) for media_url in media_urls]
+
+        if self._debug:
+            print(tasks)
+
+        if self._mode != 'silent':
+            print('{} media are found.'.format(len(media_urls)))
+
+        return tasks
+
+
+    def login(self, credentials_file):
+        pass
+
+    
+class MediaScraper(Scraper):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._name = 'general'
+        # self.abs_url_regex = '([a-z0-9]*:|.{0})\/\/[^"\s]+'
+        # self.rel_url_regex = '\"[^\/]+\/[^\/].*$|^\/[^\/].*\"'
+        # self.abs_url_regex = '/^([a-z0-9]*:|.{0})\/\/.*$/gmi'
+        # self.rel_url_regex = '/^[^\/]+\/[^\/].*$|^\/[^\/].*$/gmi'
+
+    def scrape(self, url):
+        self._connect(url)
+        self.scrollToBottom()
+
+        if self._debug:
+            self.save('test.html')
+
+        source = self.source()
+
+        # Parse links, images, and videos successively by BeautifulSoup parser.
+
+        media_urls = []
+        soup = bs(source, 'html.parser')
+        title = soup.find('title').text
+        for link in soup.find_all('a', href=True):
+            if is_media(link['href']):
+                media_urls.append(link['href'])
+            if is_media(link.text):
+                media_urls.append(link.text)
+        for image in soup.find_all('img', src=True):
+            if is_media(image['src']):
+                media_urls.append(image['src'])
+        for video in soup.find_all('video', src=True):
+            if is_media(video['src']):
+                media_urls.append(video['src'])
+
+        if self._debug:
+            print(media_urls)
+
+        # tasks = [(complete_url(media_url, self._driver.current_url), title, None) for media_url in media_urls]
+        tasks = [(complete_url(media_url, self._driver.current_url),
+                  self._driver.current_url.replace('/','_'), None) for media_url in media_urls]
 
         if self._debug:
             print(tasks)
@@ -195,7 +242,6 @@ class MediaScraper(Scraper):
 
     def login(self, credentials_file):
         pass
-
 
 class InstagramScraper(Scraper):
 
